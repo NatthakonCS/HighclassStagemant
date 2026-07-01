@@ -8,7 +8,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0b0c10; color: #ffffff; padding-bottom: 80px; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #0b0c10; 
+            color: #ffffff; 
+            padding-bottom: 80px; 
+            overscroll-behavior-y: none; /* ป้องกันจอเด้งเวลาเลื่อนสุด */
+        }
         .card-bg { background-color: #1a1c23; }
         .accent-green { color: #00e676; }
         .bg-accent-green { background-color: #00e676; }
@@ -17,6 +23,23 @@
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         .nav-item.active { color: #00e676; }
         ::-webkit-scrollbar { display: none; }
+        
+        /* ---------------------------------------------------
+           ส่วนแก้บั๊กกราฟ: บังคับขนาดแบบเด็ดขาด 
+        --------------------------------------------------- */
+        .chart-container {
+            position: relative;
+            height: 240px; /* ล็อกความสูง */
+            width: 100%;
+            overflow: hidden;
+        }
+        .chart-container canvas {
+            position: absolute !important;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
     </style>
 </head>
 <body class="max-w-lg mx-auto">
@@ -106,13 +129,13 @@
         <div id="view-stats" class="view-section hidden">
             <div class="card-bg rounded-2xl p-5 mb-5 border border-gray-800">
                 <h3 class="text-sm font-bold mb-4">📈 แนวโน้มยอดขายเดือนนี้</h3>
-                <div class="relative h-60 w-full">
+                <div class="chart-container">
                     <canvas id="trendChart"></canvas>
                 </div>
             </div>
             <div class="card-bg rounded-2xl p-5 border border-gray-800">
                 <h3 class="text-sm font-bold mb-4">🏆 สัดส่วนรายได้ตามหมวดหมู่</h3>
-                <div class="relative h-60 w-full flex justify-center">
+                <div class="chart-container">
                     <canvas id="categoryChart"></canvas>
                 </div>
             </div>
@@ -140,7 +163,7 @@
 
     <script>
         // ==========================================
-        // นำ URL ล่าสุดมาวางตรงนี้
+        // ใส่ SCRIPT_URL ตรงนี้ครับ
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEHaXDNvKpTl2SONwo_5OE59vy5i2t0__QYnlBkkV0q9iGzxO1O7Ixp_DsZmtP6qFHWw/exec'; 
         // ==========================================
 
@@ -152,6 +175,9 @@
         document.getElementById('date').valueAsDate = new Date();
 
         function switchTab(tabId) {
+            // ป้องกันการขยับจอเองเวลาคลิกเปลี่ยนแท็บ
+            window.scrollTo({ top: 0, behavior: 'instant' }); 
+
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active', 'text-green-500'));
             
@@ -280,7 +306,6 @@
             Chart.defaults.color = '#718096'; 
             Chart.defaults.font.family = 'Inter';
 
-            // วาดกราฟเส้นแนวโน้ม
             if(trendChartInstance) trendChartInstance.destroy();
             trendChartInstance = new Chart(document.getElementById('trendChart'), {
                 type: 'line',
@@ -308,7 +333,6 @@
                 }
             });
 
-            // วาดกราฟโดนัท
             if(categoryChartInstance) categoryChartInstance.destroy();
             categoryChartInstance = new Chart(document.getElementById('categoryChart'), {
                 type: 'doughnut',
