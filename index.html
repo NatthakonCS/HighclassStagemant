@@ -16,7 +16,6 @@
         .calendar-cell.has-sales { border-color: #00e676; background-color: rgba(0, 230, 118, 0.05); }
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         .nav-item.active { color: #00e676; }
-        /* ซ่อน Scrollbar แต่ยังเลื่อนได้ */
         ::-webkit-scrollbar { display: none; }
     </style>
 </head>
@@ -81,11 +80,12 @@
                     <div>
                         <label class="block text-[10px] font-bold text-gray-400 mb-1">หมวดหมู่สินค้า</label>
                         <select id="category" class="w-full bg-gray-900 text-white rounded-xl p-3 border border-gray-700 outline-none appearance-none">
-                            <option value="Bootleg/Fashion">Bootleg/Fashion</option>
-                            <option value="Sport Wear">Sport Wear</option>
+                            <option value="Fashion">Fashion</option>
+                            <option value="Authentic">Authentic</option>
+                            <option value="Hoodie/ Sweater">Hoodie/ Sweater</option>
                             <option value="Polo">Polo</option>
-                            <option value="Authentic">งานแท้</option>
-                            <option value="Hoodie , Sweater">Hoodie/Sweater</option>
+                            <option value="Sport Wear">Sport Wear</option>
+                            <option value="Woman">Woman</option>
                         </select>
                     </div>
                     <div>
@@ -106,11 +106,13 @@
         <div id="view-stats" class="view-section hidden">
             <div class="card-bg rounded-2xl p-5 mb-5 border border-gray-800">
                 <h3 class="text-sm font-bold mb-4">📈 แนวโน้มยอดขายเดือนนี้</h3>
-                <canvas id="trendChart" class="w-full h-48"></canvas>
+                <div class="relative h-60 w-full">
+                    <canvas id="trendChart"></canvas>
+                </div>
             </div>
             <div class="card-bg rounded-2xl p-5 border border-gray-800">
                 <h3 class="text-sm font-bold mb-4">🏆 สัดส่วนรายได้ตามหมวดหมู่</h3>
-                <div class="relative h-48 w-full flex justify-center">
+                <div class="relative h-60 w-full flex justify-center">
                     <canvas id="categoryChart"></canvas>
                 </div>
             </div>
@@ -138,7 +140,7 @@
 
     <script>
         // ==========================================
-        // 1. นำ URL ล่าสุดมาวางตรงนี้
+        // นำ URL ล่าสุดมาวางตรงนี้
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEHaXDNvKpTl2SONwo_5OE59vy5i2t0__QYnlBkkV0q9iGzxO1O7Ixp_DsZmtP6qFHWw/exec'; 
         // ==========================================
 
@@ -149,7 +151,6 @@
 
         document.getElementById('date').valueAsDate = new Date();
 
-        // ระบบสลับหน้า (Tabs)
         function switchTab(tabId) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active', 'text-green-500'));
@@ -166,13 +167,13 @@
 
         async function loadData() {
             const statusIndicator = document.getElementById('connection-status');
-            statusIndicator.classList.replace('bg-yellow-500', 'bg-blue-500'); // กำลังโหลด
+            statusIndicator.classList.replace('bg-yellow-500', 'bg-blue-500'); 
             
             try {
                 const response = await fetch(SCRIPT_URL);
                 globalSalesData = await response.json();
                 
-                statusIndicator.classList.replace('bg-blue-500', 'bg-green-500'); // สำเร็จ
+                statusIndicator.classList.replace('bg-blue-500', 'bg-green-500'); 
                 statusIndicator.classList.remove('animate-pulse');
                 
                 renderDashboard();
@@ -180,7 +181,7 @@
 
             } catch (error) {
                 console.error('Error:', error);
-                statusIndicator.classList.replace('bg-blue-500', 'bg-red-500'); // พัง
+                statusIndicator.classList.replace('bg-blue-500', 'bg-red-500'); 
             }
         }
 
@@ -199,26 +200,22 @@
                 const rowDate = new Date(row.date);
                 const val = Number(row.amount);
                 
-                // คำนวณเดือนนี้
                 if (rowDate.getFullYear() === currentYear && rowDate.getMonth() === currentMonth) {
                     currentMonthTotal += val;
                     const day = rowDate.getDate();
                     dailyTotals[day] = (dailyTotals[day] || 0) + val;
                 }
-                // คำนวณเดือนที่แล้ว (ถึงวันที่ปัจจุบัน)
                 if (rowDate.getFullYear() === prevYear && rowDate.getMonth() === prevMonth && rowDate.getDate() <= now.getDate()) {
                     prevMonthTotal += val;
                 }
             });
 
-            // อัปเดต UI Dashboard
             document.getElementById('target-display').innerText = formatTHB(targetAmount);
             document.getElementById('total-sales').innerText = formatTHB(currentMonthTotal);
             
             const percent = Math.min((currentMonthTotal / targetAmount) * 100, 100);
             document.getElementById('progress-bar').style.width = `${percent}%`;
 
-            // คำนวณ MoM
             const momElement = document.getElementById('mom-compare');
             if (prevMonthTotal === 0) {
                 momElement.innerHTML = `เทียบกับเดือนที่แล้ว: <span class="text-gray-500">ไม่มีข้อมูล</span>`;
@@ -232,7 +229,6 @@
                 }
             }
 
-            // วาดปฏิทิน
             renderCalendarUI(currentYear, currentMonth, dailyTotals, now.getDate());
         }
 
@@ -261,7 +257,6 @@
             }
         }
 
-        // วาดกราฟ Chart.js
         function renderCharts() {
             const now = new Date();
             const currentMonthData = globalSalesData.filter(row => {
@@ -269,12 +264,9 @@
                 return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
             });
 
-            // 1. เตรียมข้อมูล Line Chart (ยอดขายรายวัน)
             const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
             const labels = Array.from({length: daysInMonth}, (_, i) => i + 1);
             const trendData = Array(daysInMonth).fill(0);
-            
-            // 2. เตรียมข้อมูล Doughnut Chart (หมวดหมู่)
             const categoryTotals = {};
 
             currentMonthData.forEach(row => {
@@ -285,10 +277,10 @@
                 categoryTotals[cat] = (categoryTotals[cat] || 0) + Number(row.amount);
             });
 
-            Chart.defaults.color = '#718096'; // สีฟอนต์กราฟ
+            Chart.defaults.color = '#718096'; 
             Chart.defaults.font.family = 'Inter';
 
-            // วาด Line Chart
+            // วาดกราฟเส้นแนวโน้ม
             if(trendChartInstance) trendChartInstance.destroy();
             trendChartInstance = new Chart(document.getElementById('trendChart'), {
                 type: 'line',
@@ -305,10 +297,18 @@
                         pointRadius: 2
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#2d3748' } }, x: { grid: { display: false } } } }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } }, 
+                    scales: { 
+                        y: { beginAtZero: true, grid: { color: '#2d3748' } }, 
+                        x: { grid: { display: false } } 
+                    } 
+                }
             });
 
-            // วาด Doughnut Chart
+            // วาดกราฟโดนัท
             if(categoryChartInstance) categoryChartInstance.destroy();
             categoryChartInstance = new Chart(document.getElementById('categoryChart'), {
                 type: 'doughnut',
@@ -316,15 +316,21 @@
                     labels: Object.keys(categoryTotals),
                     datasets: [{
                         data: Object.values(categoryTotals),
-                        backgroundColor: ['#00e676', '#3b82f6', '#f59e0b', '#ec4899', '#6b7280'],
+                        backgroundColor: ['#00e676', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#ef4444', '#6b7280'],
                         borderWidth: 0
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } }, cutout: '70%' }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } 
+                    }, 
+                    cutout: '70%' 
+                }
             });
         }
 
-        // ระบบส่งข้อมูล
         document.getElementById('sales-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
@@ -351,8 +357,8 @@
                     btn.innerText = 'บันทึกข้อมูล';
                     btn.disabled = false;
                     btn.classList.remove('bg-blue-500');
-                    loadData(); // โหลดข้อมูลใหม่
-                    switchTab('dashboard'); // เด้งกลับหน้าแรกอัตโนมัติ
+                    loadData(); 
+                    switchTab('dashboard'); 
                 }, 1500);
 
             } catch (error) {
@@ -371,7 +377,6 @@
             }
         });
 
-        // เปิดมาหน้าแรกให้โหลดข้อมูล
         loadData();
     </script>
 </body>
