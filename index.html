@@ -13,7 +13,7 @@
             background-color: #0b0c10; 
             color: #ffffff; 
             padding-bottom: 80px; 
-            overscroll-behavior-y: none; /* ป้องกันจอเด้งเวลาเลื่อนสุด */
+            overscroll-behavior-y: none;
         }
         .card-bg { background-color: #1a1c23; }
         .accent-green { color: #00e676; }
@@ -24,12 +24,9 @@
         .nav-item.active { color: #00e676; }
         ::-webkit-scrollbar { display: none; }
         
-        /* ---------------------------------------------------
-           ส่วนแก้บั๊กกราฟ: บังคับขนาดแบบเด็ดขาด 
-        --------------------------------------------------- */
         .chart-container {
             position: relative;
-            height: 240px; /* ล็อกความสูง */
+            height: 240px; 
             width: 100%;
             overflow: hidden;
         }
@@ -127,14 +124,32 @@
         </div>
 
         <div id="view-stats" class="view-section hidden">
+            <div class="card-bg rounded-2xl p-5 mb-5 border border-gray-800 flex justify-between items-center shadow-lg">
+                <div>
+                    <p class="text-[10px] text-gray-400 font-bold tracking-widest mb-1 uppercase">ยอดขายรวมทั้งหมด</p>
+                    <h2 class="text-2xl font-bold text-white" id="all-time-sales">฿0</h2>
+                </div>
+                <div class="w-12 h-12 bg-green-900/30 rounded-full flex items-center justify-center text-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                </div>
+            </div>
+
             <div class="card-bg rounded-2xl p-5 mb-5 border border-gray-800">
-                <h3 class="text-sm font-bold mb-4">📈 แนวโน้มยอดขายเดือนนี้</h3>
+                <h3 class="text-sm font-bold mb-4">📊 แนวโน้มยอดขายแต่ละเดือน</h3>
+                <div class="chart-container">
+                    <canvas id="monthlyTrendChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card-bg rounded-2xl p-5 mb-5 border border-gray-800">
+                <h3 class="text-sm font-bold mb-4">📈 ยอดขายรายวัน (เดือนปัจจุบัน)</h3>
                 <div class="chart-container">
                     <canvas id="trendChart"></canvas>
                 </div>
             </div>
+
             <div class="card-bg rounded-2xl p-5 border border-gray-800">
-                <h3 class="text-sm font-bold mb-4">🏆 สัดส่วนรายได้ตามหมวดหมู่</h3>
+                <h3 class="text-sm font-bold mb-4">🏆 สัดส่วนรายได้ตามหมวดหมู่ (เดือนปัจจุบัน)</h3>
                 <div class="chart-container">
                     <canvas id="categoryChart"></canvas>
                 </div>
@@ -170,12 +185,12 @@
         let globalSalesData = [];
         let trendChartInstance = null;
         let categoryChartInstance = null;
+        let monthlyChartInstance = null; // ตัวแปรกราฟใหม่
         let targetAmount = localStorage.getItem('monthlyTarget') ? Number(localStorage.getItem('monthlyTarget')) : 30000;
 
         document.getElementById('date').valueAsDate = new Date();
 
         function switchTab(tabId) {
-            // ป้องกันการขยับจอเองเวลาคลิกเปลี่ยนแท็บ
             window.scrollTo({ top: 0, behavior: 'instant' }); 
 
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
@@ -285,37 +300,96 @@
 
         function renderCharts() {
             const now = new Date();
+            const monthNamesShort = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+            
+            // --- 1. คำนวณยอดขายรวมทั้งหมด และ แนวโน้มรายเดือน ---
+            let allTimeTotal = 0;
+            const monthlyTotals = {};
+
+            globalSalesData.forEach(row => {
+                const val = Number(row.amount);
+                allTimeTotal += val;
+                
+                const d = new Date(row.date);
+                const year = d.getFullYear();
+                const month = d.getMonth();
+                
+                // สร้าง Key สำหรับจัดกลุ่ม เช่น "2026-07"
+                const key = `${year}-${String(month).padStart(2, '0')}`; 
+                const label = `${monthNamesShort[month]} ${String(year + 543).slice(-2)}`; // เช่น ก.ค. 69
+                
+                if(!monthlyTotals[key]) {
+                    monthlyTotals[key] = { label: label, total: 0 };
+                }
+                monthlyTotals[key].total += val;
+            });
+
+            // อัปเดตตัวเลขยอดขายรวมทั้งหมด
+            document.getElementById('all-time-sales').innerText = formatTHB(allTimeTotal);
+
+            // เรียงข้อมูลรายเดือนตามลำดับเวลา
+            const sortedKeys = Object.keys(monthlyTotals).sort();
+            const monthlyLabels = sortedKeys.map(k => monthlyTotals[k].label);
+            const monthlyData = sortedKeys.map(k => monthlyTotals[k].total);
+
+            // --- 2. คำนวณข้อมูลสำหรับเดือนปัจจุบัน (กราฟเส้นและโดนัท) ---
             const currentMonthData = globalSalesData.filter(row => {
                 const d = new Date(row.date);
                 return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
             });
 
             const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-            const labels = Array.from({length: daysInMonth}, (_, i) => i + 1);
-            const trendData = Array(daysInMonth).fill(0);
+            const dailyLabels = Array.from({length: daysInMonth}, (_, i) => i + 1);
+            const dailyTrendData = Array(daysInMonth).fill(0);
             const categoryTotals = {};
 
             currentMonthData.forEach(row => {
                 const dayIndex = new Date(row.date).getDate() - 1;
-                trendData[dayIndex] += Number(row.amount);
+                dailyTrendData[dayIndex] += Number(row.amount);
                 
                 const cat = row.category || 'อื่นๆ';
                 categoryTotals[cat] = (categoryTotals[cat] || 0) + Number(row.amount);
             });
 
+            // --- ตั้งค่าสีหลักของ Chart.js ---
             Chart.defaults.color = '#718096'; 
             Chart.defaults.font.family = 'Inter';
 
+            // วาดกราฟแท่งแนวโน้มรายเดือน (ของใหม่)
+            if(monthlyChartInstance) monthlyChartInstance.destroy();
+            monthlyChartInstance = new Chart(document.getElementById('monthlyTrendChart'), {
+                type: 'bar',
+                data: {
+                    labels: monthlyLabels,
+                    datasets: [{
+                        label: 'ยอดขาย (บาท)',
+                        data: monthlyData,
+                        backgroundColor: '#00e676',
+                        borderRadius: 4
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } }, 
+                    scales: { 
+                        y: { beginAtZero: true, grid: { color: '#2d3748' } }, 
+                        x: { grid: { display: false } } 
+                    } 
+                }
+            });
+
+            // วาดกราฟเส้นแนวโน้มรายวัน
             if(trendChartInstance) trendChartInstance.destroy();
             trendChartInstance = new Chart(document.getElementById('trendChart'), {
                 type: 'line',
                 data: {
-                    labels: labels,
+                    labels: dailyLabels,
                     datasets: [{
                         label: 'ยอดขาย (บาท)',
-                        data: trendData,
-                        borderColor: '#00e676',
-                        backgroundColor: 'rgba(0, 230, 118, 0.1)',
+                        data: dailyTrendData,
+                        borderColor: '#3b82f6', // เปลี่ยนสีให้ต่างจากรายเดือนนิดนึง จะได้ดูง่าย
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         borderWidth: 2,
                         tension: 0.3,
                         fill: true,
@@ -333,6 +407,7 @@
                 }
             });
 
+            // วาดกราฟโดนัท
             if(categoryChartInstance) categoryChartInstance.destroy();
             categoryChartInstance = new Chart(document.getElementById('categoryChart'), {
                 type: 'doughnut',
