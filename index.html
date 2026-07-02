@@ -72,49 +72,6 @@
             <div class="card-bg rounded-2xl p-5 mb-6 shadow-lg border border-gray-800">
                 <div class="flex justify-between items-end mb-2">
                     <p class="text-xs text-gray-400">ความคืบหน้ายอดขาย (Sales Target)</p>
-                    <div class="text-right    <!-- Header -->
-    <div class="p-5 pt-8 sticky top-0 bg-[#0b0c10] z-10 flex justify-between items-center border-b border-gray-800">
-        <h1 class="text-xl font-bold tracking-wider">HIGH<span class="text-gray-400">CLASS</span></h1>
-        <div id="connection-status" class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
-    </div>
-
-    <!-- ส่วนเนื้อหาหลัก -->
-    <div class="p-4" id="main-content">
-        
-        <!-- ==================== VIEW 1: DASHBOARD ==================== -->
-        <div id="view-dashboard" class="view-section">
-            
-            <div class="card-bg rounded-2xl p-6 mb-4 shadow-2xl border border-gray-800 text-center relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-blue-500"></div>
-                <p class="text-[10px] text-gray-400 font-bold tracking-widest mb-1 uppercase" id="dashboard-total-title">กำไรสุทธิเดือนนี้ (Net Profit)</p>
-                <h2 class="text-4xl font-bold text-white mb-4" id="net-profit">฿0</h2>
-                
-                <div class="grid grid-cols-2 gap-4 border-t border-gray-800 pt-4">
-                    <div>
-                        <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">รายรับ (Income)</p>
-                        <h3 class="text-lg font-bold accent-green" id="total-income">฿0</h3>
-                    </div>
-                    <div>
-                        <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">รายจ่าย (Expense)</p>
-                        <h3 class="text-lg font-bold accent-red" id="total-expense">฿0</h3>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <button onclick="quickAdd('income')" class="card-bg border border-[#00e676] text-[#00e676] rounded-xl p-3 font-bold flex items-center justify-center gap-2 hover:bg-[#00e676] hover:text-black transition cursor-pointer shadow-lg shadow-green-900/20">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 
-                    เพิ่มรายรับ
-                </button>
-                <button onclick="quickAdd('expense')" class="card-bg border border-[#ef4444] text-[#ef4444] rounded-xl p-3 font-bold flex items-center justify-center gap-2 hover:bg-[#ef4444] hover:text-white transition cursor-pointer shadow-lg shadow-red-900/20">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    เพิ่มรายจ่าย
-                </button>
-            </div>
-
-            <div class="card-bg rounded-2xl p-5 mb-6 shadow-lg border border-gray-800">
-                <div class="flex justify-between items-end mb-2">
-                    <p class="text-xs text-gray-400">ความคืบหน้ายอดขาย (Sales Target)</p>
                     <div class="text-right flex items-center gap-2">
                         <h2 class="text-sm font-semibold text-gray-300" id="target-display">฿30,000</h2>
                         <button id="edit-target-btn" class="text-gray-500 hover:text-white p-1 cursor-pointer">✏️</button>
@@ -141,7 +98,6 @@
             </div>
         </div>
 
-        <!-- ==================== VIEW 2: ADD RECORD ==================== -->
         <div id="view-add" class="view-section hidden">
             <div class="card-bg rounded-2xl p-6 shadow-lg border border-gray-800">
                 
@@ -183,10 +139,7 @@
             </div>
         </div>
 
-        <!-- ==================== VIEW 3: ANALYTICS ==================== -->
         <div id="view-stats" class="view-section hidden">
-            
-            <!-- ยอดเงินรวมทั้งหมด เอากลับมาแล้วครับ -->
             <div class="card-bg rounded-2xl p-5 mb-5 border border-gray-800 flex justify-between items-center shadow-lg">
                 <div>
                     <p class="text-[10px] text-gray-400 font-bold tracking-widest mb-1 uppercase">ยอดรับรวมทั้งหมด (All-time)</p>
@@ -204,7 +157,6 @@
                 </div>
             </div>
             
-            <!-- หมวดหมู่ เอากลับมาแล้วครับ -->
             <div class="card-bg rounded-2xl p-5 mb-5 border border-gray-800">
                 <h3 class="text-sm font-bold mb-4" id="stats-cat-income">🏆 สัดส่วนรายรับ (เดือนนี้)</h3>
                 <div class="chart-container"><canvas id="incomeCategoryChart"></canvas></div>
@@ -216,7 +168,6 @@
         </div>
     </div>
 
-    <!-- แถบเมนูด้านล่าง -->
     <div class="fixed bottom-0 left-0 w-full bg-[#1a1c23] border-t border-gray-800 pb-safe z-50">
         <div class="max-w-lg mx-auto flex justify-between items-center p-2 px-6">
             <button onclick="switchTab('dashboard')" class="nav-item active flex flex-col items-center p-2 text-gray-500" id="tab-dashboard">
@@ -400,16 +351,30 @@
                 const data = dailyData[day] || {inc: 0, exp: 0};
                 const hasData = data.inc > 0 || data.exp > 0;
                 const isToday = day === todayDate;
-                const cellClass = hasData ? 'calendar-cell has-data rounded-lg flex flex-col items-center justify-start py-1' : 'calendar-cell rounded-lg border-gray-800 flex flex-col items-center justify-start py-1';
+                
+                // คำนวณสีของกรอบตามรายรับ/รายจ่าย
+                let cellStyle = 'border-gray-800';
+                let bgStyle = '';
+                
+                if (hasData) {
+                    if (data.inc >= data.exp) { 
+                        cellStyle = 'border-[#00e676]/40'; // วันที่กำไร (กรอบเขียว)
+                        bgStyle = 'bg-[#00e676]/5';
+                    } else { 
+                        cellStyle = 'border-[#ef4444]/50'; // วันที่ขาดทุน (กรอบแดง)
+                        bgStyle = 'bg-[#ef4444]/10';
+                    }
+                }
+                
+                const cellClass = `calendar-cell rounded-lg flex flex-col items-center justify-start py-1 border ${cellStyle} ${bgStyle}`;
                 
                 let amountsHtml = '';
-                // ปรับให้ตัวเลขรับ/จ่ายแสดงซ้อนกันได้พอดี ไม่ตกขอบ
                 if(data.inc > 0) amountsHtml += `<span class="accent-green text-[9px] font-bold mt-1 leading-none w-full text-center truncate">+฿${data.inc.toLocaleString()}</span>`;
                 if(data.exp > 0) amountsHtml += `<span class="accent-red text-[9px] font-bold mt-[2px] leading-none w-full text-center truncate">-฿${data.exp.toLocaleString()}</span>`;
 
                 grid.innerHTML += `
                     <div class="${cellClass}">
-                        <span class="text-[11px] mb-auto ${isToday ? 'bg-white text-black w-5 h-5 rounded-full flex items-center justify-center font-bold' : 'text-gray-400 font-semibold'}">${day}</span>
+                        <span class="text-[11px] mb-auto ${isToday ? 'bg-white text-black w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-md' : 'text-gray-400 font-semibold'}">${day}</span>
                         ${amountsHtml}
                     </div>
                 `;
@@ -425,10 +390,7 @@
             const monthlyTotals = {};
             
             globalSalesData.forEach(row => {
-                // คำนวณยอดรับรวมทั้งหมด
-                if (row.type !== 'expense') {
-                    allTimeIncome += Number(row.amount);
-                }
+                if (row.type !== 'expense') allTimeIncome += Number(row.amount);
 
                 const d = new Date(row.date);
                 const rYear = d.getFullYear();
@@ -441,7 +403,6 @@
                 else monthlyTotals[key].inc += Number(row.amount);
             });
 
-            // อัปเดตตัวเลขยอดรับรวมทั้งหมด
             document.getElementById('all-time-sales').innerText = formatTHB(allTimeIncome);
 
             const sortedKeys = Object.keys(monthlyTotals).sort();
