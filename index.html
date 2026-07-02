@@ -18,25 +18,20 @@
         .card-bg { background-color: #1a1c23; }
         .accent-green { color: #00e676; }
         .bg-accent-green { background-color: #00e676; }
-        .calendar-cell { height: 60px; border: 1px solid #2d3748; transition: all 0.2s; }
-        .calendar-cell.has-sales { border-color: #00e676; background-color: rgba(0, 230, 118, 0.05); }
+        .accent-red { color: #ef4444; }
+        .bg-accent-red { background-color: #ef4444; }
+        
+        .calendar-cell { height: 65px; border: 1px solid #2d3748; transition: all 0.2s; }
+        .calendar-cell.has-data { background-color: rgba(255, 255, 255, 0.02); }
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         .nav-item.active { color: #00e676; }
         ::-webkit-scrollbar { display: none; }
         
-        .chart-container {
-            position: relative;
-            height: 240px; 
-            width: 100%;
-            overflow: hidden;
-        }
-        .chart-container canvas {
-            position: absolute !important;
-            top: 0;
-            left: 0;
-            width: 100% !important;
-            height: 100% !important;
-        }
+        .chart-container { position: relative; height: 240px; width: 100%; overflow: hidden; }
+        .chart-container canvas { position: absolute !important; top: 0; left: 0; width: 100% !important; height: 100% !important; }
+        
+        /* Toggle Switch Animation */
+        .toggle-btn { transition: all 0.3s ease; }
     </style>
 </head>
 <body class="max-w-lg mx-auto">
@@ -52,38 +47,47 @@
         
         <!-- ==================== VIEW 1: DASHBOARD ==================== -->
         <div id="view-dashboard" class="view-section">
-            <div class="card-bg rounded-2xl p-6 mb-6 shadow-2xl border border-gray-800">
-                <div class="flex justify-between items-end mb-2">
+            
+            <!-- สรุปกำไรสุทธิ -->
+            <div class="card-bg rounded-2xl p-6 mb-4 shadow-2xl border border-gray-800 text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-blue-500"></div>
+                <p class="text-[10px] text-gray-400 font-bold tracking-widest mb-1 uppercase" id="dashboard-total-title">กำไรสุทธิเดือนนี้ (Net Profit)</p>
+                <h2 class="text-4xl font-bold text-white mb-4" id="net-profit">฿0</h2>
+                
+                <div class="grid grid-cols-2 gap-4 border-t border-gray-800 pt-4">
                     <div>
-                        <p class="text-[10px] text-gray-400 font-bold tracking-widest mb-1 uppercase" id="dashboard-total-title">ยอดขายเดือนนี้</p>
-                        <h2 class="text-3xl font-bold accent-green" id="total-sales">฿0</h2>
-                        <p class="text-xs text-gray-400 mt-1" id="mom-compare">เทียบกับเดือนที่แล้ว: <span class="text-gray-500">กำลังคำนวณ...</span></p>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">รายรับ (Income)</p>
+                        <h3 class="text-lg font-bold accent-green" id="total-income">฿0</h3>
                     </div>
-                    <div class="text-right">
-                        <p class="text-[10px] text-gray-400 font-bold tracking-widest mb-1 uppercase flex justify-end items-center gap-1">
-                            เป้าหมาย 
-                            <button id="edit-target-btn" class="text-gray-500 hover:text-white transition p-1 cursor-pointer">✏️</button>
-                        </p>
-                        <h2 class="text-xl font-semibold text-gray-300" id="target-display">฿30,000</h2>
+                    <div>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">รายจ่าย (Expense)</p>
+                        <h3 class="text-lg font-bold accent-red" id="total-expense">฿0</h3>
                     </div>
-                </div>
-                <div class="w-full bg-gray-800 rounded-full h-2 mb-2 overflow-hidden mt-4">
-                    <div class="bg-accent-green h-full rounded-full transition-all duration-1000 ease-out" id="progress-bar" style="width: 0%"></div>
                 </div>
             </div>
 
+            <!-- เป้าหมายยอดขาย (เน้นที่รายรับ) -->
+            <div class="card-bg rounded-2xl p-5 mb-6 shadow-lg border border-gray-800">
+                <div class="flex justify-between items-end mb-2">
+                    <p class="text-xs text-gray-400">ความคืบหน้ายอดขาย (Sales Target)</p>
+                    <div class="text-right flex items-center gap-2">
+                        <h2 class="text-sm font-semibold text-gray-300" id="target-display">฿30,000</h2>
+                        <button id="edit-target-btn" class="text-gray-500 hover:text-white p-1">✏️</button>
+                    </div>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+                    <div class="bg-accent-green h-full rounded-full transition-all duration-1000" id="progress-bar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- ปฏิทิน -->
             <div class="card-bg rounded-2xl p-5 shadow-lg border border-gray-800">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-sm font-bold tracking-tight">ปฏิทินยอดขาย</h3>
-                    <!-- ปุ่มเปลี่ยนเดือนแบบในรูป -->
+                    <h3 class="text-sm font-bold tracking-tight">ปฏิทินบัญชี</h3>
                     <div class="flex items-center bg-gray-900 rounded-lg p-1 border border-gray-700">
-                        <button onclick="changeMonth(-1)" class="px-2 py-1 text-gray-400 hover:text-white transition cursor-pointer">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
-                        </button>
+                        <button onclick="changeMonth(-1)" class="px-2 py-1 text-gray-400 hover:text-white"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
                         <span id="month-title" class="text-[10px] font-bold text-gray-300 min-w-[70px] text-center uppercase tracking-widest">...</span>
-                        <button onclick="changeMonth(1)" class="px-2 py-1 text-gray-400 hover:text-white transition cursor-pointer">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
-                        </button>
+                        <button onclick="changeMonth(1)" class="px-2 py-1 text-gray-400 hover:text-white"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
                     </div>
                 </div>
                 <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-black text-gray-500 mb-2">
@@ -96,11 +100,18 @@
         <!-- ==================== VIEW 2: ADD RECORD ==================== -->
         <div id="view-add" class="view-section hidden">
             <div class="card-bg rounded-2xl p-6 shadow-lg border border-gray-800">
-                <div class="flex items-center gap-2 mb-6">
-                    <div class="w-1 h-6 bg-accent-green rounded-full"></div>
-                    <h3 class="text-lg font-bold">บันทึกยอดขายใหม่</h3>
+                
+                <!-- Toggle สลับ รายรับ / รายจ่าย -->
+                <div class="flex bg-gray-900 rounded-xl p-1 mb-6 border border-gray-700 relative">
+                    <div id="toggle-bg" class="absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-accent-green rounded-lg transition-all duration-300"></div>
+                    <button type="button" id="btn-type-income" class="toggle-btn flex-1 py-2 text-sm font-bold text-black z-10 rounded-lg" onclick="setTransactionType('income')">รายรับ (Income)</button>
+                    <button type="button" id="btn-type-expense" class="toggle-btn flex-1 py-2 text-sm font-bold text-gray-400 z-10 rounded-lg" onclick="setTransactionType('expense')">รายจ่าย (Expense)</button>
                 </div>
+
                 <form id="sales-form" class="space-y-4">
+                    <!-- ซ่อนประเภทไว้ส่งข้อมูล -->
+                    <input type="hidden" id="transaction-type" value="income">
+
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[10px] font-bold text-gray-400 mb-1">วันที่</label>
@@ -112,26 +123,21 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-gray-400 mb-1">หมวดหมู่สินค้า</label>
+                        <label class="block text-[10px] font-bold text-gray-400 mb-1">หมวดหมู่</label>
                         <select id="category" class="w-full bg-gray-900 text-white rounded-xl p-3 border border-gray-700 outline-none appearance-none">
-                            <option value="Fashion">Fashion</option>
-                            <option value="Authentic">Authentic</option>
-                            <option value="Hoodie/ Sweater">Hoodie/ Sweater</option>
-                            <option value="Polo">Polo</option>
-                            <option value="Sport Wear">Sport Wear</option>
-                            <option value="Woman">Woman</option>
+                            <!-- ตัวเลือกจะถูกสร้างด้วย JavaScript ขึ้นอยู่กับประเภท -->
                         </select>
                     </div>
-                    <div>
+                    <div id="phone-container">
                         <label class="block text-[10px] font-bold text-gray-400 mb-1">เบอร์โทรลูกค้า (สะสมแต้ม)</label>
                         <input type="tel" id="phone" placeholder="08X-XXX-XXXX (ไม่บังคับ)" class="w-full bg-gray-900 text-white rounded-xl p-3 border border-gray-700 outline-none">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-gray-400 mb-1">รายละเอียด</label>
-                        <input type="text" id="note" placeholder="ไซส์, ตำหนิ, หรือชื่อลูกค้า" class="w-full bg-gray-900 text-white rounded-xl p-3 border border-gray-700 outline-none">
+                        <label class="block text-[10px] font-bold text-gray-400 mb-1">รายละเอียด (Note)</label>
+                        <input type="text" id="note" placeholder="ไซส์, ตำหนิ, หรือรายละเอียดค่าใช้จ่าย" class="w-full bg-gray-900 text-white rounded-xl p-3 border border-gray-700 outline-none">
                     </div>
-                    <button type="submit" class="w-full bg-accent-green text-black font-black uppercase rounded-xl p-4 mt-4" id="submit-btn">
-                        บันทึกข้อมูล
+                    <button type="submit" class="w-full bg-accent-green text-black font-black uppercase rounded-xl p-4 mt-4 transition-colors duration-300" id="submit-btn">
+                        บันทึกรายรับ
                     </button>
                 </form>
             </div>
@@ -139,40 +145,33 @@
 
         <!-- ==================== VIEW 3: ANALYTICS ==================== -->
         <div id="view-stats" class="view-section hidden">
-            <div class="card-bg rounded-2xl p-5 mb-5 border border-gray-800 flex justify-between items-center shadow-lg">
-                <div>
-                    <p class="text-[10px] text-gray-400 font-bold tracking-widest mb-1 uppercase">ยอดขายรวมทั้งหมด</p>
-                    <h2 class="text-2xl font-bold text-white" id="all-time-sales">฿0</h2>
-                </div>
-                <div class="w-12 h-12 bg-green-900/30 rounded-full flex items-center justify-center text-green-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                </div>
-            </div>
-
+            <!-- กราฟรายเดือน รับ vs จ่าย -->
             <div class="card-bg rounded-2xl p-5 mb-5 border border-gray-800">
-                <h3 class="text-sm font-bold mb-4">📊 แนวโน้มยอดขายแต่ละเดือน</h3>
+                <h3 class="text-sm font-bold mb-4">📊 กระแสเงินสด (รับ vs จ่าย)</h3>
                 <div class="chart-container">
-                    <canvas id="monthlyTrendChart"></canvas>
+                    <canvas id="cashflowChart"></canvas>
                 </div>
             </div>
 
+            <!-- กราฟโดนัท หมวดหมู่รายรับ -->
             <div class="card-bg rounded-2xl p-5 mb-5 border border-gray-800">
-                <h3 class="text-sm font-bold mb-4" id="stats-daily-title">📈 ยอดขายรายวัน (เดือนนี้)</h3>
+                <h3 class="text-sm font-bold mb-4" id="stats-cat-income">🏆 สัดส่วนรายรับ (เดือนนี้)</h3>
                 <div class="chart-container">
-                    <canvas id="trendChart"></canvas>
+                    <canvas id="incomeCategoryChart"></canvas>
                 </div>
             </div>
 
+            <!-- กราฟโดนัท หมวดหมู่รายจ่าย -->
             <div class="card-bg rounded-2xl p-5 border border-gray-800">
-                <h3 class="text-sm font-bold mb-4" id="stats-cat-title">🏆 สัดส่วนหมวดหมู่ (เดือนนี้)</h3>
+                <h3 class="text-sm font-bold mb-4" id="stats-cat-expense">🔥 สัดส่วนรายจ่าย (เดือนนี้)</h3>
                 <div class="chart-container">
-                    <canvas id="categoryChart"></canvas>
+                    <canvas id="expenseCategoryChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- แถบเมนูด้านล่าง (Bottom Navigation) -->
+    <!-- แถบเมนูด้านล่าง -->
     <div class="fixed bottom-0 left-0 w-full bg-[#1a1c23] border-t border-gray-800 pb-safe z-50">
         <div class="max-w-lg mx-auto flex justify-between items-center p-2 px-6">
             <button onclick="switchTab('dashboard')" class="nav-item active flex flex-col items-center p-2 text-gray-500" id="tab-dashboard">
@@ -180,7 +179,7 @@
                 <span class="text-[10px] mt-1 font-bold">หน้าหลัก</span>
             </button>
             <button onclick="switchTab('add')" class="nav-item flex flex-col items-center p-2 text-gray-500 relative" id="tab-add">
-                <div class="absolute -top-6 bg-accent-green text-black rounded-full p-3 shadow-lg shadow-green-900/50">
+                <div class="absolute -top-6 bg-accent-green text-black rounded-full p-3 shadow-lg" id="add-btn-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </div>
                 <span class="text-[10px] mt-6 font-bold">บันทึกยอด</span>
@@ -194,22 +193,68 @@
 
     <script>
         // ==========================================
-        // ใส่ SCRIPT_URL ตรงนี้ครับ
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEHaXDNvKpTl2SONwo_5OE59vy5i2t0__QYnlBkkV0q9iGzxO1O7Ixp_DsZmtP6qFHWw/exec'; 
+        // ใส่ SCRIPT_URL ตรงนี้ครับ (อย่าลืมอัปเดตโค้ด GAS ใหม่ด้วย)
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLiwJ2FZTTEg57fhZBNrwVtLBBSOa0WUtbJNAe454wQvlqCGbVjrhd72940F-HPFf-Kw/exec'; 
         // ==========================================
 
         let globalSalesData = [];
-        let trendChartInstance = null;
-        let categoryChartInstance = null;
-        let monthlyChartInstance = null; 
+        let cashflowChartInst = null;
+        let incomeCatChartInst = null;
+        let expenseCatChartInst = null; 
         let targetAmount = localStorage.getItem('monthlyTarget') ? Number(localStorage.getItem('monthlyTarget')) : 30000;
-        
-        // ตัวแปรสำหรับเก็บเดือนที่กำลัง "ดู" อยู่ (เริ่มต้นที่เดือนปัจจุบัน)
         let currentViewDate = new Date(); 
 
-        document.getElementById('date').valueAsDate = new Date();
+        const categories = {
+            income: ["Fashion", "Authentic", "Hoodie/ Sweater", "Polo", "Sport Wear", "Woman", "อื่นๆ"],
+            expense: ["ต้นทุนสินค้า (สต็อก)", "ค่าขนส่ง/แพ็คเกจ", "ค่าโฆษณา/โปรโมท", "ค่าอุปกรณ์ร้าน", "เบ็ดเตล็ด (อื่นๆ)"]
+        };
 
-        // ฟังก์ชันเปลี่ยนเดือนจากปุ่มลูกศร
+        document.getElementById('date').valueAsDate = new Date();
+        populateCategories('income');
+
+        // ฟังก์ชันจัดการ Toggle สลับรับ/จ่าย
+        function setTransactionType(type) {
+            document.getElementById('transaction-type').value = type;
+            const bg = document.getElementById('toggle-bg');
+            const btnInc = document.getElementById('btn-type-income');
+            const btnExp = document.getElementById('btn-type-expense');
+            const submitBtn = document.getElementById('submit-btn');
+            const addIcon = document.getElementById('add-btn-icon');
+            const phoneContainer = document.getElementById('phone-container');
+
+            populateCategories(type);
+
+            if(type === 'income') {
+                bg.style.transform = 'translateX(0)';
+                bg.className = 'absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-accent-green rounded-lg transition-all duration-300';
+                btnInc.classList.replace('text-gray-400', 'text-black');
+                btnExp.classList.replace('text-white', 'text-gray-400');
+                
+                submitBtn.innerText = 'บันทึกรายรับ';
+                submitBtn.className = 'w-full bg-accent-green text-black font-black uppercase rounded-xl p-4 mt-4 transition-colors duration-300';
+                addIcon.className = 'absolute -top-6 bg-accent-green text-black rounded-full p-3 shadow-lg';
+                phoneContainer.style.display = 'block';
+            } else {
+                bg.style.transform = 'translateX(100%)';
+                bg.className = 'absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-accent-red rounded-lg transition-all duration-300';
+                btnExp.classList.replace('text-gray-400', 'text-white');
+                btnInc.classList.replace('text-black', 'text-gray-400');
+                
+                submitBtn.innerText = 'บันทึกรายจ่าย';
+                submitBtn.className = 'w-full bg-accent-red text-white font-black uppercase rounded-xl p-4 mt-4 transition-colors duration-300';
+                addIcon.className = 'absolute -top-6 bg-accent-red text-white rounded-full p-3 shadow-lg shadow-red-900/50';
+                phoneContainer.style.display = 'none'; // ซ่อนเบอร์ลูกค้าตอนกรอกรายจ่าย
+            }
+        }
+
+        function populateCategories(type) {
+            const select = document.getElementById('category');
+            select.innerHTML = '';
+            categories[type].forEach(cat => {
+                select.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+        }
+
         function changeMonth(offset) {
             currentViewDate.setMonth(currentViewDate.getMonth() + offset);
             renderDashboard();
@@ -223,12 +268,10 @@
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
             document.getElementById(`tab-${tabId}`).classList.add('active', 'text-green-500');
             
-            // รีเซ็ตให้กลับมาเป็นเดือนปัจจุบันทุกครั้งที่กดเข้าหน้า Dashboard 
             if(tabId === 'dashboard' && (currentViewDate.getMonth() !== new Date().getMonth() || currentViewDate.getFullYear() !== new Date().getFullYear())) {
                 currentViewDate = new Date();
                 renderDashboard();
             }
-
             if(tabId === 'stats' && globalSalesData.length > 0) renderCharts();
         }
 
@@ -237,86 +280,62 @@
         }
 
         async function loadData() {
-            const statusIndicator = document.getElementById('connection-status');
-            statusIndicator.classList.replace('bg-yellow-500', 'bg-blue-500'); 
-            
+            const status = document.getElementById('connection-status');
+            status.classList.replace('bg-yellow-500', 'bg-blue-500'); 
             try {
                 const response = await fetch(SCRIPT_URL);
                 globalSalesData = await response.json();
-                
-                statusIndicator.classList.replace('bg-blue-500', 'bg-green-500'); 
-                statusIndicator.classList.remove('animate-pulse');
-                
+                status.classList.replace('bg-blue-500', 'bg-green-500'); 
+                status.classList.remove('animate-pulse');
                 renderDashboard();
                 if(!document.getElementById('view-stats').classList.contains('hidden')) renderCharts();
             } catch (error) {
-                console.error('Error:', error);
-                statusIndicator.classList.replace('bg-blue-500', 'bg-red-500'); 
+                status.classList.replace('bg-blue-500', 'bg-red-500'); 
             }
         }
 
         function renderDashboard() {
             const year = currentViewDate.getFullYear();
             const month = currentViewDate.getMonth();
-            
-            // คำนวณหาเดือนก่อนหน้า (เพื่อทำ MoM)
-            let prevMonth = month - 1;
-            let prevYear = year;
-            if (prevMonth < 0) { prevMonth = 11; prevYear--; }
-
-            let currentMonthTotal = 0;
-            let prevMonthTotal = 0;
-            let dailyTotals = {};
-
-            // ตรวจสอบว่าเดือนที่กำลังดู ใช่เดือนปัจจุบันจริงๆ หรือไม่
-            const isRealCurrentMonth = (year === new Date().getFullYear() && month === new Date().getMonth());
-            
-            // ถ้าดูเดือนปัจจุบัน ให้เทียบ MoM แค่วันที่ปัจจุบัน / ถ้าดูเดือนอดีต ให้เทียบเต็มเดือน
-            const compareLimitDay = isRealCurrentMonth ? new Date().getDate() : 31;
+            let incTotal = 0;
+            let expTotal = 0;
+            let dailyData = {};
 
             globalSalesData.forEach(row => {
                 const rowDate = new Date(row.date);
-                const val = Number(row.amount);
-                
                 if (rowDate.getFullYear() === year && rowDate.getMonth() === month) {
-                    currentMonthTotal += val;
+                    const val = Number(row.amount);
+                    const isIncome = row.type === 'income' || !row.type;
                     const day = rowDate.getDate();
-                    dailyTotals[day] = (dailyTotals[day] || 0) + val;
-                }
-                
-                if (rowDate.getFullYear() === prevYear && rowDate.getMonth() === prevMonth && rowDate.getDate() <= compareLimitDay) {
-                    prevMonthTotal += val;
+                    
+                    if(!dailyData[day]) dailyData[day] = { inc: 0, exp: 0 };
+                    
+                    if(isIncome) {
+                        incTotal += val;
+                        dailyData[day].inc += val;
+                    } else {
+                        expTotal += val;
+                        dailyData[day].exp += val;
+                    }
                 }
             });
 
-            // อัปเดต Title ให้รู้ว่ากำลังดูเดือนอะไร
+            const isRealCurrentMonth = (year === new Date().getFullYear() && month === new Date().getMonth());
             const monthNamesShort = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-            document.getElementById('dashboard-total-title').innerText = isRealCurrentMonth ? "ยอดขายเดือนนี้" : `ยอดขายเดือน ${monthNamesShort[month]} ${year + 543}`;
+            document.getElementById('dashboard-total-title').innerText = isRealCurrentMonth ? "กำไรสุทธิเดือนนี้" : `กำไรสุทธิเดือน ${monthNamesShort[month]} ${year + 543}`;
+            
+            document.getElementById('total-income').innerText = formatTHB(incTotal);
+            document.getElementById('total-expense').innerText = formatTHB(expTotal);
+            document.getElementById('net-profit').innerText = formatTHB(incTotal - expTotal);
             
             document.getElementById('target-display').innerText = formatTHB(targetAmount);
-            document.getElementById('total-sales').innerText = formatTHB(currentMonthTotal);
-            
-            const percent = Math.min((currentMonthTotal / targetAmount) * 100, 100);
+            const percent = Math.min((incTotal / targetAmount) * 100, 100);
             document.getElementById('progress-bar').style.width = `${percent}%`;
 
-            const momElement = document.getElementById('mom-compare');
-            if (prevMonthTotal === 0) {
-                momElement.innerHTML = `เทียบกับเดือนที่แล้ว: <span class="text-gray-500">ไม่มีข้อมูล</span>`;
-            } else {
-                const diff = currentMonthTotal - prevMonthTotal;
-                const percentDiff = ((diff / prevMonthTotal) * 100).toFixed(1);
-                if (diff >= 0) {
-                    momElement.innerHTML = `เทียบกับเดือนที่แล้ว: <span class="text-green-500">▲ +${percentDiff}%</span>`;
-                } else {
-                    momElement.innerHTML = `เทียบกับเดือนที่แล้ว: <span class="text-red-500">▼ ${percentDiff}%</span>`;
-                }
-            }
-
-            // ส่งข้อมูลไปวาดปฏิทิน
-            renderCalendarUI(year, month, dailyTotals);
+            renderCalendarUI(year, month, dailyData);
         }
 
-        function renderCalendarUI(year, month, dailyTotals) {
+        function renderCalendarUI(year, month, dailyData) {
             const grid = document.getElementById('calendar-grid');
             grid.innerHTML = '';
             
@@ -324,23 +343,26 @@
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
             
-            // อัปเดตชื่อเดือนตรงหัวปฏิทิน
             document.getElementById('month-title').innerText = `${monthNames[month]} ${year + 543}`;
-
             for (let i = 0; i < firstDay; i++) grid.innerHTML += `<div></div>`;
 
             const isRealCurrentMonth = (year === new Date().getFullYear() && month === new Date().getMonth());
             const todayDate = isRealCurrentMonth ? new Date().getDate() : null;
 
             for (let day = 1; day <= daysInMonth; day++) {
-                const sales = dailyTotals[day] || 0;
+                const data = dailyData[day] || {inc: 0, exp: 0};
+                const hasData = data.inc > 0 || data.exp > 0;
                 const isToday = day === todayDate;
-                const cellClass = sales > 0 ? 'calendar-cell has-sales rounded-lg' : 'calendar-cell rounded-lg border-gray-800';
+                const cellClass = hasData ? 'calendar-cell has-data rounded-lg' : 'calendar-cell rounded-lg border-gray-800';
                 
+                let amountsHtml = '';
+                if(data.inc > 0) amountsHtml += `<span class="accent-green text-[8px] font-bold mt-[2px] leading-tight">+${(data.inc/1000).toFixed(1)}k</span>`;
+                if(data.exp > 0) amountsHtml += `<span class="accent-red text-[8px] font-bold leading-tight">-${(data.exp/1000).toFixed(1)}k</span>`;
+
                 grid.innerHTML += `
                     <div class="${cellClass} flex flex-col justify-center items-center p-1">
-                        <span class="text-[11px] ${isToday ? 'bg-accent-green text-black w-5 h-5 rounded-full flex items-center justify-center font-bold' : 'text-gray-400 font-semibold'}">${day}</span>
-                        ${sales > 0 ? `<span class="accent-green text-[8px] font-bold mt-1">฿${sales.toLocaleString()}</span>` : ''}
+                        <span class="text-[11px] ${isToday ? 'bg-white text-black w-5 h-5 rounded-full flex items-center justify-center font-bold' : 'text-gray-400 font-semibold'}">${day}</span>
+                        ${amountsHtml}
                     </div>
                 `;
             }
@@ -351,77 +373,72 @@
             const month = currentViewDate.getMonth();
             const monthNamesShort = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
             
-            // 1. All-time Sales & Monthly Trend (คำนวณทั้งหมด)
-            let allTimeTotal = 0;
+            // 1. All-time Cashflow
             const monthlyTotals = {};
-
             globalSalesData.forEach(row => {
-                const val = Number(row.amount);
-                allTimeTotal += val;
-                
                 const d = new Date(row.date);
                 const rYear = d.getFullYear();
                 const rMonth = d.getMonth();
                 const key = `${rYear}-${String(rMonth).padStart(2, '0')}`; 
                 const label = `${monthNamesShort[rMonth]} ${String(rYear + 543).slice(-2)}`; 
                 
-                if(!monthlyTotals[key]) {
-                    monthlyTotals[key] = { label: label, total: 0 };
-                }
-                monthlyTotals[key].total += val;
+                if(!monthlyTotals[key]) monthlyTotals[key] = { label: label, inc: 0, exp: 0 };
+                
+                if (row.type === 'expense') monthlyTotals[key].exp += Number(row.amount);
+                else monthlyTotals[key].inc += Number(row.amount);
             });
-
-            document.getElementById('all-time-sales').innerText = formatTHB(allTimeTotal);
 
             const sortedKeys = Object.keys(monthlyTotals).sort();
-            const monthlyLabels = sortedKeys.map(k => monthlyTotals[k].label);
-            const monthlyData = sortedKeys.map(k => monthlyTotals[k].total);
+            const cashflowLabels = sortedKeys.map(k => monthlyTotals[k].label);
+            const incData = sortedKeys.map(k => monthlyTotals[k].inc);
+            const expData = sortedKeys.map(k => monthlyTotals[k].exp);
 
-            // 2. ข้อมูลเฉพาะเดือนที่กำลังดู
-            const isRealCurrentMonth = (year === new Date().getFullYear() && month === new Date().getMonth());
-            document.getElementById('stats-daily-title').innerText = isRealCurrentMonth ? '📈 ยอดขายรายวัน (เดือนนี้)' : `📈 ยอดขายรายวัน (${monthNamesShort[month]} ${year + 543})`;
-            document.getElementById('stats-cat-title').innerText = isRealCurrentMonth ? '🏆 สัดส่วนหมวดหมู่ (เดือนนี้)' : `🏆 สัดส่วนหมวดหมู่ (${monthNamesShort[month]} ${year + 543})`;
+            // 2. Categories for selected month
+            const incCatTotals = {};
+            const expCatTotals = {};
 
-            const currentMonthData = globalSalesData.filter(row => {
+            globalSalesData.forEach(row => {
                 const d = new Date(row.date);
-                return d.getMonth() === month && d.getFullYear() === year;
-            });
-
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const dailyLabels = Array.from({length: daysInMonth}, (_, i) => i + 1);
-            const dailyTrendData = Array(daysInMonth).fill(0);
-            const categoryTotals = {};
-
-            currentMonthData.forEach(row => {
-                const dayIndex = new Date(row.date).getDate() - 1;
-                dailyTrendData[dayIndex] += Number(row.amount);
-                
-                const cat = row.category || 'อื่นๆ';
-                categoryTotals[cat] = (categoryTotals[cat] || 0) + Number(row.amount);
+                if (d.getMonth() === month && d.getFullYear() === year) {
+                    const cat = row.category || 'อื่นๆ';
+                    if (row.type === 'expense') {
+                        expCatTotals[cat] = (expCatTotals[cat] || 0) + Number(row.amount);
+                    } else {
+                        incCatTotals[cat] = (incCatTotals[cat] || 0) + Number(row.amount);
+                    }
+                }
             });
 
             Chart.defaults.color = '#718096'; 
             Chart.defaults.font.family = 'Inter';
 
-            // วาดกราฟ
-            if(monthlyChartInstance) monthlyChartInstance.destroy();
-            monthlyChartInstance = new Chart(document.getElementById('monthlyTrendChart'), {
+            // Cashflow Bar Chart
+            if(cashflowChartInst) cashflowChartInst.destroy();
+            cashflowChartInst = new Chart(document.getElementById('cashflowChart'), {
                 type: 'bar',
-                data: { labels: monthlyLabels, datasets: [{ label: 'ยอดขาย (บาท)', data: monthlyData, backgroundColor: '#00e676', borderRadius: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#2d3748' } }, x: { grid: { display: false } } } }
+                data: { 
+                    labels: cashflowLabels, 
+                    datasets: [
+                        { label: 'รายรับ', data: incData, backgroundColor: '#00e676', borderRadius: 2 },
+                        { label: 'รายจ่าย', data: expData, backgroundColor: '#ef4444', borderRadius: 2 }
+                    ] 
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#2d3748' } }, x: { grid: { display: false } } } }
             });
 
-            if(trendChartInstance) trendChartInstance.destroy();
-            trendChartInstance = new Chart(document.getElementById('trendChart'), {
-                type: 'line',
-                data: { labels: dailyLabels, datasets: [{ label: 'ยอดขาย (บาท)', data: dailyTrendData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 2, tension: 0.3, fill: true, pointRadius: 2 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#2d3748' } }, x: { grid: { display: false } } } }
-            });
-
-            if(categoryChartInstance) categoryChartInstance.destroy();
-            categoryChartInstance = new Chart(document.getElementById('categoryChart'), {
+            // Income Donut
+            if(incomeCatChartInst) incomeCatChartInst.destroy();
+            incomeCatChartInst = new Chart(document.getElementById('incomeCategoryChart'), {
                 type: 'doughnut',
-                data: { labels: Object.keys(categoryTotals), datasets: [{ data: Object.values(categoryTotals), backgroundColor: ['#00e676', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#ef4444', '#6b7280'], borderWidth: 0 }] },
+                data: { labels: Object.keys(incCatTotals), datasets: [{ data: Object.values(incCatTotals), backgroundColor: ['#00e676', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#a855f7'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } }, cutout: '70%' }
+            });
+
+            // Expense Donut
+            if(expenseCatChartInst) expenseCatChartInst.destroy();
+            expenseCatChartInst = new Chart(document.getElementById('expenseCategoryChart'), {
+                type: 'doughnut',
+                data: { labels: Object.keys(expCatTotals), datasets: [{ data: Object.values(expCatTotals), backgroundColor: ['#ef4444', '#f97316', '#eab308', '#ec4899', '#6b7280'], borderWidth: 0 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } }, cutout: '70%' }
             });
         }
@@ -429,10 +446,12 @@
         document.getElementById('sales-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
-            btn.innerText = 'กำลังอัปโหลด...';
+            const type = document.getElementById('transaction-type').value;
+            btn.innerText = 'กำลังบันทึก...';
             btn.disabled = true;
 
             const payload = {
+                type: type,
                 date: document.getElementById('date').value,
                 amount: document.getElementById('amount').value,
                 category: document.getElementById('category').value,
@@ -445,25 +464,25 @@
                 document.getElementById('amount').value = '';
                 document.getElementById('phone').value = '';
                 document.getElementById('note').value = '';
+                
                 btn.innerText = 'บันทึกสำเร็จ!';
                 btn.classList.add('bg-blue-500');
                 
                 setTimeout(() => {
-                    btn.innerText = 'บันทึกข้อมูล';
+                    setTransactionType(type); // Reset styles
                     btn.disabled = false;
-                    btn.classList.remove('bg-blue-500');
                     loadData(); 
                     switchTab('dashboard'); 
                 }, 1500);
             } catch (error) {
                 alert('ส่งข้อมูลไม่สำเร็จ กรุณาลองใหม่');
-                btn.innerText = 'บันทึกข้อมูล';
+                setTransactionType(type);
                 btn.disabled = false;
             }
         });
 
         document.getElementById('edit-target-btn').addEventListener('click', () => {
-            const newTarget = prompt("ตั้งเป้าหมายยอดขายใหม่สำหรับเดือนนี้ (บาท):", targetAmount);
+            const newTarget = prompt("ตั้งเป้าหมายรายรับใหม่ (บาท):", targetAmount);
             if (newTarget && !isNaN(newTarget)) {
                 targetAmount = Number(newTarget);
                 localStorage.setItem('monthlyTarget', targetAmount);
