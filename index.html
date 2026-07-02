@@ -29,12 +29,275 @@
         
         .chart-container { position: relative; height: 240px; width: 100%; overflow: hidden; }
         .chart-container canvas { position: absolute !important; top: 0; left: 0; width: 100% !important; height: 100% !important; }
-        
-        /* Toggle Switch Animation */
-        .toggle-btn { transition: all 0.3s ease; }
     </style>
 </head>
 <body class="max-w-lg mx-auto">
+
+    <div class="p-5 pt-8 sticky top-0 bg-[#0b0c10] z-10 flex justify-between items-center border-b border-gray-800">
+        <h1 class="text-xl font-bold tracking-wider">HIGH<span class="text-gray-400">CLASS</span></h1>
+        <div id="connection-status" class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+    </div>
+
+    <div class="p-4" id="main-content">
+        
+        <div id="view-dashboard" class="view-section">
+            
+            <div class="card-bg rounded-2xl p-6 mb-4 shadow-2xl border border-gray-800 text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-blue-500"></div>
+                <p class="text-[10px] text-gray-400 font-bold tracking-widest mb-1 uppercase" id="dashboard-total-title">กำไรสุทธิเดือนนี้ (Net Profit)</p>
+                <h2 class="text-4xl font-bold text-white mb-4" id="net-profit">฿0</h2>
+                
+                <div class="grid grid-cols-2 gap-4 border-t border-gray-800 pt-4">
+                    <div>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">รายรับ (Income)</p>
+                        <h3 class="text-lg font-bold accent-green" id="total-income">฿0</h3>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">รายจ่าย (Expense)</p>
+                        <h3 class="text-lg font-bold accent-red" id="total-expense">฿0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-bg rounded-2xl p-5 mb-6 shadow-lg border border-gray-800">
+                <div class="flex justify-between items-end mb-2">
+                    <p class="text-xs text-gray-400">ความคืบหน้ายอดขาย (Sales Target)</p>
+                    <div class="text-right flex items-center gap-2">
+                        <h2 class="text-sm font-semibold text-gray-300" id="target-display">฿30,000</h2>
+                        <button id="edit-target-btn" class="text-gray-500 hover:text-white p-1 cursor-pointer">✏️</button>
+                    </div>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+                    <div class="bg-accent-green h-full rounded-full transition-all duration-1000" id="progress-bar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="card-bg rounded-2xl p-5 shadow-lg border border-gray-800">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-bold tracking-tight">ปฏิทินบัญชี</h3>
+                    <div class="flex items-center bg-gray-900 rounded-lg p-1 border border-gray-700">
+                        <button onclick="changeMonth(-1)" class="px-2 py-1 text-gray-400 hover:text-white cursor-pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+                        <span id="month-title" class="text-[10px] font-bold text-gray-300 min-w-[70px] text-center uppercase tracking-widest">...</span>
+                        <button onclick="changeMonth(1)" class="px-2 py-1 text-gray-400 hover:text-white cursor-pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-black text-gray-500 mb-2">
+                    <div>อา.</div><div>จ.</div><div>อ.</div><div>พ.</div><div>พฤ.</div><div>ศ.</div><div>ส.</div>
+                </div>
+                <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
+            </div>
+        </div>
+
+        <div id="view-add" class="view-section hidden">
+            <div class="card-bg rounded-2xl p-6 shadow-lg border border-gray-800">
+                
+                <div class="flex bg-gray-900 rounded-xl p-1 mb-6 border border-gray-700 relative">
+                    <div id="toggle-bg" class="absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-accent-green rounded-lg transition-all duration-300"></div>
+                    <button type="button" id="btn-type-income" class="w-1/2 py-2 text-sm font-bold text-black z-10 rounded-lg cursor-pointer" onclick="setTransactionType('income')">รายรับ (Income)</button>
+                    <button type="button" id="btn-type-expense" class="w-1/2 py-2 text-sm font-bold text-gray-400 z-10 rounded-lg cursor-pointer" onclick="setTransactionType('expense')">รายจ่าย (Expense)</button>
+                </div>
+
+                <form id="sales-form" class="space-y-4">
+                    <input type="hidden" id="transaction-type" value="income">
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 mb-1">วันที่</label>
+                            <input type="date" id="date" required class="w-full bg-gray-900 text-white rounded-xl p-3 border border-gray-700 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 mb-1">ยอดเงิน (บาท)</label>
+                            <input type="number" id="amount" required placeholder="0" class="w-full bg-gray-900 text-white rounded-xl p-3 border border-gray-700 outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 mb-1">หมวดหมู่</label>
+                        <select id="category" class="w-full bg-gray-900 text-white rounded-xl p-3 border border-gray-700 outline-none appearance-none"></select>
+                    </div>
+                    <div id="phone-container">
+                        <label class="block text-[10px] font-bold text-gray-400 mb-1">เบอร์โทรลูกค้า (สะสมแต้ม)</label>
+                        <input type="tel" id="phone" placeholder="08X-XXX-XXXX (ไม่บังคับ)" class="w-full bg-gray-900 text-white rounded-xl p-3 border border-gray-700 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 mb-1">รายละเอียด (Note)</label>
+                        <input type="text" id="note" placeholder="รายละเอียดเพิ่มเติม" class="w-full bg-gray-900 text-white rounded-xl p-3 border border-gray-700 outline-none">
+                    </div>
+                    <button type="submit" class="w-full bg-accent-green text-black font-black uppercase rounded-xl p-4 mt-4" id="submit-btn">
+                        บันทึกรายรับ
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div id="view-stats" class="view-section hidden">
+            <div class="card-bg rounded-2xl p-5 mb-5 border border-gray-800">
+                <h3 class="text-sm font-bold mb-4">📊 กระแสเงินสด (รับ vs จ่าย)</h3>
+                <div class="chart-container">
+                    <canvas id="cashflowChart"></canvas>
+                </div>
+            </div>
+            <div class="card-bg rounded-2xl p-5 mb-5 border border-gray-800">
+                <h3 class="text-sm font-bold mb-4" id="stats-cat-income">🏆 สัดส่วนรายรับ (เดือนนี้)</h3>
+                <div class="chart-container"><canvas id="incomeCategoryChart"></canvas></div>
+            </div>
+            <div class="card-bg rounded-2xl p-5 border border-gray-800">
+                <h3 class="text-sm font-bold mb-4" id="stats-cat-expense">🔥 สัดส่วนรายจ่าย (เดือนนี้)</h3>
+                <div class="chart-container"><canvas id="expenseCategoryChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="fixed bottom-0 left-0 w-full bg-[#1a1c23] border-t border-gray-800 pb-safe z-50">
+        <div class="max-w-lg mx-auto flex justify-between items-center p-2 px-6">
+            <button onclick="switchTab('dashboard')" class="nav-item active flex flex-col items-center p-2 text-gray-500" id="tab-dashboard">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <span class="text-[10px] mt-1 font-bold">หน้าหลัก</span>
+            </button>
+            <button onclick="switchTab('add')" class="nav-item flex flex-col items-center p-2 text-gray-500 relative" id="tab-add">
+                <div class="absolute -top-6 bg-accent-green text-black rounded-full p-3 shadow-lg" id="add-btn-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </div>
+                <span class="text-[10px] mt-6 font-bold">บันทึกยอด</span>
+            </button>
+            <button onclick="switchTab('stats')" class="nav-item flex flex-col items-center p-2 text-gray-500" id="tab-stats">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20v-4"></path></svg>
+                <span class="text-[10px] mt-1 font-bold">สถิติ</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // วาง URL ของเว็บแอป (ล่าสุด) ตรงนี้ครับ
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKtkyKjvota3ldA2Oby922pGq2Q9KRLdNPhC2MUXB7Jipw8Hriu1DmsrkmqXG_BDEHOQ/exec'; 
+        // ==========================================
+
+        let globalSalesData = [];
+        let cashflowChartInst = null;
+        let incomeCatChartInst = null;
+        let expenseCatChartInst = null; 
+        let targetAmount = localStorage.getItem('monthlyTarget') ? Number(localStorage.getItem('monthlyTarget')) : 30000;
+        let currentViewDate = new Date(); 
+
+        const categories = {
+            income: ["Fashion", "Authentic", "Hoodie/ Sweater", "Polo", "Sport Wear", "Woman", "อื่นๆ"],
+            expense: ["ต้นทุนสินค้า (สต็อก)", "ค่าขนส่ง/แพ็คเกจ", "ค่าโฆษณา/โปรโมท", "ค่าอุปกรณ์ร้าน", "เบ็ดเตล็ด (อื่นๆ)"]
+        };
+
+        document.getElementById('date').valueAsDate = new Date();
+        populateCategories('income');
+
+        function setTransactionType(type) {
+            document.getElementById('transaction-type').value = type;
+            const bg = document.getElementById('toggle-bg');
+            const btnInc = document.getElementById('btn-type-income');
+            const btnExp = document.getElementById('btn-type-expense');
+            const submitBtn = document.getElementById('submit-btn');
+            const addIcon = document.getElementById('add-btn-icon');
+            const phoneContainer = document.getElementById('phone-container');
+
+            populateCategories(type);
+
+            if(type === 'income') {
+                bg.style.transform = 'translateX(0)';
+                bg.className = 'absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-accent-green rounded-lg transition-all duration-300';
+                btnInc.classList.replace('text-gray-400', 'text-black');
+                btnExp.classList.replace('text-white', 'text-gray-400');
+                submitBtn.innerText = 'บันทึกรายรับ';
+                submitBtn.className = 'w-full bg-accent-green text-black font-black uppercase rounded-xl p-4 mt-4';
+                addIcon.className = 'absolute -top-6 bg-accent-green text-black rounded-full p-3 shadow-lg';
+                phoneContainer.style.display = 'block';
+            } else {
+                bg.style.transform = 'translateX(100%)';
+                bg.className = 'absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-accent-red rounded-lg transition-all duration-300';
+                btnExp.classList.replace('text-gray-400', 'text-white');
+                btnInc.classList.replace('text-black', 'text-gray-400');
+                submitBtn.innerText = 'บันทึกรายจ่าย';
+                submitBtn.className = 'w-full bg-accent-red text-white font-black uppercase rounded-xl p-4 mt-4';
+                addIcon.className = 'absolute -top-6 bg-accent-red text-white rounded-full p-3 shadow-lg shadow-red-900/50';
+                phoneContainer.style.display = 'none';
+            }
+        }
+
+        function populateCategories(type) {
+            const select = document.getElementById('category');
+            select.innerHTML = '';
+            categories[type].forEach(cat => {
+                select.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+        }
+
+        function changeMonth(offset) {
+            currentViewDate.setMonth(currentViewDate.getMonth() + offset);
+            renderDashboard();
+            if(!document.getElementById('view-stats').classList.contains('hidden')) renderCharts();
+        }
+
+        function switchTab(tabId) {
+            window.scrollTo({ top: 0, behavior: 'instant' }); 
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active', 'text-green-500'));
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).classList.add('active', 'text-green-500');
+            
+            if(tabId === 'dashboard' && (currentViewDate.getMonth() !== new Date().getMonth() || currentViewDate.getFullYear() !== new Date().getFullYear())) {
+                currentViewDate = new Date();
+                renderDashboard();
+            }
+            if(tabId === 'stats' && globalSalesData.length > 0) renderCharts();
+        }
+
+        function formatTHB(amount) {
+            return new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', minimumFractionDigits: 0 }).format(amount);
+        }
+
+        async function loadData() {
+            const status = document.getElementById('connection-status');
+            status.classList.replace('bg-yellow-500', 'bg-blue-500'); 
+            try {
+                const response = await fetch(SCRIPT_URL);
+                globalSalesData = await response.json();
+                status.classList.replace('bg-blue-500', 'bg-green-500'); 
+                status.classList.remove('animate-pulse');
+                renderDashboard();
+                if(!document.getElementById('view-stats').classList.contains('hidden')) renderCharts();
+            } catch (error) {
+                status.classList.replace('bg-blue-500', 'bg-red-500'); 
+            }
+        }
+
+        function renderDashboard() {
+            const year = currentViewDate.getFullYear();
+            const month = currentViewDate.getMonth();
+            let incTotal = 0;
+            let expTotal = 0;
+            let dailyData = {};
+
+            globalSalesData.forEach(row => {
+                const rowDate = new Date(row.date);
+                if (rowDate.getFullYear() === year && rowDate.getMonth() === month) {
+                    const val = Number(row.amount);
+                    const isIncome = row.type === 'income';
+                    const day = rowDate.getDate();
+                    
+                    if(!dailyData[day]) dailyData[day] = { inc: 0, exp: 0 };
+                    
+                    if(isIncome) {
+                        incTotal += val;
+                        dailyData[day].inc += val;
+                    } else {
+                        expTotal += val;
+                        dailyData[day].exp += val;
+                    }
+                }
+            });
+
+            const isRealCurrentMonth = (year === new Date().getFullYear() && month === new Date().getMonth());
+            const monthNamesShort = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+            document.getElementById('dashboard-total-title').innerText = isRealCurrentMonth ? "กำไรสุทธิเดือนนี้" : `กำไรสุทธิเดือน ${monthNamesShort[month]} ${year + 543}`;
+            
+            document.getElementById('total-income').innerText = formatTHB(incTotal);
+            document.getElementById('total-expense').innerText = format<body class="max-w-lg mx-auto">
 
     <!-- Header -->
     <div class="p-5 pt-8 sticky top-0 bg-[#0b0c10] z-10 flex justify-between items-center border-b border-gray-800">
