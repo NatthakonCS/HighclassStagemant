@@ -21,7 +21,8 @@
         .accent-red { color: #ef4444; }
         .bg-accent-red { background-color: #ef4444; }
         
-        .calendar-cell { height: 65px; border: 1px solid #2d3748; transition: all 0.2s; }
+        /* ขยายช่องปฏิทินให้สูงขึ้นเพื่อรองรับ 2 บรรทัด */
+        .calendar-cell { height: 75px; border: 1px solid #2d3748; transition: all 0.2s; overflow: hidden; }
         .calendar-cell.has-data { background-color: rgba(255, 255, 255, 0.02); }
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         .nav-item.active { color: #00e676; }
@@ -45,7 +46,6 @@
         <!-- ==================== VIEW 1: DASHBOARD ==================== -->
         <div id="view-dashboard" class="view-section">
             
-            <!-- สรุปกำไรสุทธิ -->
             <div class="card-bg rounded-2xl p-6 mb-4 shadow-2xl border border-gray-800 text-center relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-blue-500"></div>
                 <p class="text-[10px] text-gray-400 font-bold tracking-widest mb-1 uppercase" id="dashboard-total-title">กำไรสุทธิเดือนนี้ (Net Profit)</p>
@@ -63,7 +63,6 @@
                 </div>
             </div>
 
-            <!-- ปุ่มทางลัดเพิ่มรายรับ/รายจ่าย -->
             <div class="grid grid-cols-2 gap-4 mb-6">
                 <button onclick="quickAdd('income')" class="card-bg border border-[#00e676] text-[#00e676] rounded-xl p-3 font-bold flex items-center justify-center gap-2 hover:bg-[#00e676] hover:text-black transition cursor-pointer shadow-lg shadow-green-900/20">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 
@@ -75,7 +74,6 @@
                 </button>
             </div>
 
-            <!-- ความคืบหน้าเป้าหมายรายรับ -->
             <div class="card-bg rounded-2xl p-5 mb-6 shadow-lg border border-gray-800">
                 <div class="flex justify-between items-end mb-2">
                     <p class="text-xs text-gray-400">ความคืบหน้ายอดขาย (Sales Target)</p>
@@ -89,7 +87,6 @@
                 </div>
             </div>
 
-            <!-- ปฏิทิน -->
             <div class="card-bg rounded-2xl p-5 shadow-lg border border-gray-800">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-sm font-bold tracking-tight">ปฏิทินบัญชี</h3>
@@ -150,12 +147,26 @@
 
         <!-- ==================== VIEW 3: ANALYTICS ==================== -->
         <div id="view-stats" class="view-section hidden">
+            
+            <!-- ยอดเงินรวมทั้งหมด เอากลับมาแล้วครับ -->
+            <div class="card-bg rounded-2xl p-5 mb-5 border border-gray-800 flex justify-between items-center shadow-lg">
+                <div>
+                    <p class="text-[10px] text-gray-400 font-bold tracking-widest mb-1 uppercase">ยอดรับรวมทั้งหมด (All-time)</p>
+                    <h2 class="text-2xl font-bold text-white" id="all-time-sales">฿0</h2>
+                </div>
+                <div class="w-12 h-12 bg-green-900/30 rounded-full flex items-center justify-center text-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                </div>
+            </div>
+
             <div class="card-bg rounded-2xl p-5 mb-5 border border-gray-800">
                 <h3 class="text-sm font-bold mb-4">📊 กระแสเงินสด (รับ vs จ่าย)</h3>
                 <div class="chart-container">
                     <canvas id="cashflowChart"></canvas>
                 </div>
             </div>
+            
+            <!-- หมวดหมู่ เอากลับมาแล้วครับ -->
             <div class="card-bg rounded-2xl p-5 mb-5 border border-gray-800">
                 <h3 class="text-sm font-bold mb-4" id="stats-cat-income">🏆 สัดส่วนรายรับ (เดือนนี้)</h3>
                 <div class="chart-container"><canvas id="incomeCategoryChart"></canvas></div>
@@ -208,7 +219,6 @@
         document.getElementById('date').valueAsDate = new Date();
         populateCategories('income');
 
-        // ฟังก์ชันเมื่อกดปุ่มทางลัดที่หน้าแรก
         function quickAdd(type) {
             setTransactionType(type);
             switchTab('add');
@@ -352,15 +362,16 @@
                 const data = dailyData[day] || {inc: 0, exp: 0};
                 const hasData = data.inc > 0 || data.exp > 0;
                 const isToday = day === todayDate;
-                const cellClass = hasData ? 'calendar-cell has-data rounded-lg' : 'calendar-cell rounded-lg border-gray-800';
+                const cellClass = hasData ? 'calendar-cell has-data rounded-lg flex flex-col items-center justify-start py-1' : 'calendar-cell rounded-lg border-gray-800 flex flex-col items-center justify-start py-1';
                 
                 let amountsHtml = '';
-                if(data.inc > 0) amountsHtml += `<span class="accent-green text-[8px] font-bold mt-[2px] leading-tight">+฿${data.inc.toLocaleString()}</span>`;
-                if(data.exp > 0) amountsHtml += `<span class="accent-red text-[8px] font-bold leading-tight">-฿${data.exp.toLocaleString()}</span>`;
+                // ปรับให้ตัวเลขรับ/จ่ายแสดงซ้อนกันได้พอดี ไม่ตกขอบ
+                if(data.inc > 0) amountsHtml += `<span class="accent-green text-[9px] font-bold mt-1 leading-none w-full text-center truncate">+฿${data.inc.toLocaleString()}</span>`;
+                if(data.exp > 0) amountsHtml += `<span class="accent-red text-[9px] font-bold mt-[2px] leading-none w-full text-center truncate">-฿${data.exp.toLocaleString()}</span>`;
 
                 grid.innerHTML += `
-                    <div class="${cellClass} flex flex-col justify-center items-center p-1">
-                        <span class="text-[11px] ${isToday ? 'bg-white text-black w-5 h-5 rounded-full flex items-center justify-center font-bold' : 'text-gray-400 font-semibold'}">${day}</span>
+                    <div class="${cellClass}">
+                        <span class="text-[11px] mb-auto ${isToday ? 'bg-white text-black w-5 h-5 rounded-full flex items-center justify-center font-bold' : 'text-gray-400 font-semibold'}">${day}</span>
                         ${amountsHtml}
                     </div>
                 `;
@@ -372,8 +383,15 @@
             const month = currentViewDate.getMonth();
             const monthNamesShort = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
             
+            let allTimeIncome = 0;
             const monthlyTotals = {};
+            
             globalSalesData.forEach(row => {
+                // คำนวณยอดรับรวมทั้งหมด
+                if (row.type !== 'expense') {
+                    allTimeIncome += Number(row.amount);
+                }
+
                 const d = new Date(row.date);
                 const rYear = d.getFullYear();
                 const rMonth = d.getMonth();
@@ -384,6 +402,9 @@
                 if (row.type === 'expense') monthlyTotals[key].exp += Number(row.amount);
                 else monthlyTotals[key].inc += Number(row.amount);
             });
+
+            // อัปเดตตัวเลขยอดรับรวมทั้งหมด
+            document.getElementById('all-time-sales').innerText = formatTHB(allTimeIncome);
 
             const sortedKeys = Object.keys(monthlyTotals).sort();
             const cashflowLabels = sortedKeys.map(k => monthlyTotals[k].label);
