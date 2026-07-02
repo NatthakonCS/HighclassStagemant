@@ -3,38 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HighClass Sales Dashboard</title>
+    <title>HighClass Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #0b0c10; 
-            color: #ffffff; 
-            padding-bottom: 80px; 
-            overscroll-behavior-y: none;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #0b0c10; color: #ffffff; padding-bottom: 80px; overscroll-behavior-y: none; }
         .card-bg { background-color: #1a1c23; }
         .accent-green { color: #00e676; }
         .bg-accent-green { background-color: #00e676; }
         .accent-red { color: #ef4444; }
         .bg-accent-red { background-color: #ef4444; }
+        .accent-blue { color: #3b82f6; }
+        .bg-accent-blue { background-color: #3b82f6; }
         
         .calendar-cell { height: 75px; transition: all 0.3s ease; overflow: hidden; }
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
         .nav-item.active { color: #00e676; }
         ::-webkit-scrollbar { display: none; }
-        
         .chart-container { position: relative; height: 240px; width: 100%; overflow: hidden; }
         .chart-container canvas { position: absolute !important; top: 0; left: 0; width: 100% !important; height: 100% !important; }
     </style>
 </head>
 <body class="max-w-lg mx-auto">
 
-    <div class="p-5 pt-8 sticky top-0 bg-[#0b0c10] z-10 flex justify-between items-center border-b border-gray-800">
-        <h1 class="text-xl font-bold tracking-wider">HIGH<span class="text-gray-400">CLASS</span></h1>
-        <div id="connection-status" class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+    <div class="p-4 pt-8 sticky top-0 bg-[#0b0c10] z-20 border-b border-gray-800">
+        <div class="flex justify-between items-center mb-4 px-2">
+            <h1 class="text-xl font-bold tracking-wider">HIGH<span class="text-gray-400">CLASS</span></h1>
+            <div id="connection-status" class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+        </div>
+        
+        <div class="flex bg-gray-900 rounded-full p-1 mx-auto max-w-[240px] border border-gray-700 relative shadow-lg">
+            <div id="app-mode-bg" class="absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-accent-green rounded-full transition-all duration-300"></div>
+            <button onclick="switchAppMode('business')" id="btn-mode-biz" class="w-1/2 text-xs font-bold py-1.5 text-black z-10 transition-colors cursor-pointer">💼 ร้านค้า</button>
+            <button onclick="switchAppMode('personal')" id="btn-mode-per" class="w-1/2 text-xs font-bold py-1.5 text-gray-400 z-10 transition-colors cursor-pointer">🏠 ส่วนตัว</button>
+        </div>
     </div>
 
     <div class="p-4" id="main-content">
@@ -42,34 +45,34 @@
         <div id="view-dashboard" class="view-section">
             
             <div class="card-bg rounded-2xl p-6 mb-4 shadow-2xl border border-gray-800 text-center relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-blue-500"></div>
+                <div id="dash-accent-bar" class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-blue-500"></div>
                 <p class="text-[10px] text-gray-400 font-bold tracking-widest mb-1 uppercase" id="dashboard-total-title">กำไรสุทธิเดือนนี้ (Net Profit)</p>
                 <h2 class="text-4xl font-bold text-white mb-4" id="net-profit">฿0</h2>
                 
                 <div class="grid grid-cols-2 gap-4 border-t border-gray-800 pt-4">
                     <div>
-                        <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">รายรับ (Income)</p>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">รายรับ</p>
                         <h3 class="text-lg font-bold accent-green" id="total-income">฿0</h3>
                     </div>
                     <div>
-                        <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">รายจ่าย (Expense)</p>
+                        <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">รายจ่าย</p>
                         <h3 class="text-lg font-bold accent-red" id="total-expense">฿0</h3>
                     </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4 mb-6">
-                <button onclick="quickAdd('income')" class="card-bg border border-[#00e676] text-[#00e676] rounded-xl p-3 font-bold flex items-center justify-center gap-2 hover:bg-[#00e676] hover:text-black transition cursor-pointer shadow-lg shadow-green-900/20">
+                <button onclick="quickAdd('income')" id="btn-quick-inc" class="card-bg border border-[#00e676] text-[#00e676] rounded-xl p-3 font-bold flex items-center justify-center gap-2 hover:bg-[#00e676] hover:text-black transition cursor-pointer shadow-lg shadow-green-900/20">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 
                     เพิ่มรายรับ
                 </button>
-                <button onclick="quickAdd('expense')" class="card-bg border border-[#ef4444] text-[#ef4444] rounded-xl p-3 font-bold flex items-center justify-center gap-2 hover:bg-[#ef4444] hover:text-white transition cursor-pointer shadow-lg shadow-red-900/20">
+                <button onclick="quickAdd('expense')" id="btn-quick-exp" class="card-bg border border-[#ef4444] text-[#ef4444] rounded-xl p-3 font-bold flex items-center justify-center gap-2 hover:bg-[#ef4444] hover:text-white transition cursor-pointer shadow-lg shadow-red-900/20">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     เพิ่มรายจ่าย
                 </button>
             </div>
 
-            <div class="card-bg rounded-2xl p-5 mb-6 shadow-lg border border-gray-800">
+            <div id="target-container" class="card-bg rounded-2xl p-5 mb-6 shadow-lg border border-gray-800">
                 <div class="flex justify-between items-end mb-2">
                     <p class="text-xs text-gray-400">ความคืบหน้ายอดขาย (Sales Target)</p>
                     <div class="text-right flex items-center gap-2">
@@ -132,8 +135,8 @@
                         <label class="block text-[10px] font-bold text-gray-400 mb-1">รายละเอียด (Note)</label>
                         <input type="text" id="note" placeholder="รายละเอียดเพิ่มเติม" class="w-full bg-gray-900 text-white rounded-xl p-3 border border-gray-700 outline-none">
                     </div>
-                    <button type="submit" class="w-full bg-accent-green text-black font-black uppercase rounded-xl p-4 mt-4" id="submit-btn">
-                        บันทึกรายรับ
+                    <button type="submit" class="w-full bg-accent-green text-black font-black uppercase rounded-xl p-4 mt-4 transition-colors" id="submit-btn">
+                        บันทึกยอด
                     </button>
                 </form>
             </div>
@@ -142,10 +145,10 @@
         <div id="view-stats" class="view-section hidden">
             <div class="card-bg rounded-2xl p-5 mb-5 border border-gray-800 flex justify-between items-center shadow-lg">
                 <div>
-                    <p class="text-[10px] text-gray-400 font-bold tracking-widest mb-1 uppercase">ยอดรับรวมทั้งหมด (All-time)</p>
+                    <p class="text-[10px] text-gray-400 font-bold tracking-widest mb-1 uppercase" id="stats-total-title">ยอดรับรวมทั้งหมด (All-time)</p>
                     <h2 class="text-2xl font-bold text-white" id="all-time-sales">฿0</h2>
                 </div>
-                <div class="w-12 h-12 bg-green-900/30 rounded-full flex items-center justify-center text-green-500">
+                <div class="w-12 h-12 rounded-full flex items-center justify-center" id="stats-icon-bg">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                 </div>
             </div>
@@ -158,11 +161,11 @@
             </div>
             
             <div class="card-bg rounded-2xl p-5 mb-5 border border-gray-800">
-                <h3 class="text-sm font-bold mb-4" id="stats-cat-income">🏆 สัดส่วนรายรับ (เดือนนี้)</h3>
+                <h3 class="text-sm font-bold mb-4">🏆 สัดส่วนรายรับ (เดือนนี้)</h3>
                 <div class="chart-container"><canvas id="incomeCategoryChart"></canvas></div>
             </div>
             <div class="card-bg rounded-2xl p-5 border border-gray-800">
-                <h3 class="text-sm font-bold mb-4" id="stats-cat-expense">🔥 สัดส่วนรายจ่าย (เดือนนี้)</h3>
+                <h3 class="text-sm font-bold mb-4">🔥 สัดส่วนรายจ่าย (เดือนนี้)</h3>
                 <div class="chart-container"><canvas id="expenseCategoryChart"></canvas></div>
             </div>
         </div>
@@ -178,7 +181,7 @@
                 <div class="absolute -top-6 bg-accent-green text-black rounded-full p-3 shadow-lg" id="add-btn-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </div>
-                <span class="text-[10px] mt-6 font-bold">บันทึกยอด</span>
+                <span class="text-[10px] mt-6 font-bold">บันทึก</span>
             </button>
             <button onclick="switchTab('stats')" class="nav-item flex flex-col items-center p-2 text-gray-500" id="tab-stats">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20v-4"></path></svg>
@@ -190,23 +193,59 @@
     <script>
         // ==========================================
         // วาง URL ของเว็บแอป (ล่าสุด) ตรงนี้ครับ
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKtkyKjvota3ldA2Oby922pGq2Q9KRLdNPhC2MUXB7Jipw8Hriu1DmsrkmqXG_BDEHOQ/exec'; 
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzp9yMG-gHVDFOFrcQK8WR788eI-dqCjHqHKut5gYkvkRNUgqDDtz65aPN7sSM2NCue3Q/exec'; 
         // ==========================================
 
         let globalSalesData = [];
-        let cashflowChartInst = null;
-        let incomeCatChartInst = null;
-        let expenseCatChartInst = null; 
+        let cashflowChartInst = null, incomeCatChartInst = null, expenseCatChartInst = null;
         let targetAmount = localStorage.getItem('monthlyTarget') ? Number(localStorage.getItem('monthlyTarget')) : 30000;
         let currentViewDate = new Date(); 
+        
+        // ตัวแปรโหมดหลัก (business หรือ personal)
+        let currentAppMode = 'business'; 
 
         const categories = {
-            income: ["Fashion", "Authentic", "Hoodie/ Sweater", "Polo", "Sport Wear", "Woman", "อื่นๆ"],
-            expense: ["ต้นทุนสินค้า (สต็อก)", "ค่าขนส่ง/แพ็คเกจ", "ค่าโฆษณา/โปรโมท", "ค่าอุปกรณ์ร้าน", "เบ็ดเตล็ด (อื่นๆ)"]
+            biz_income: ["Fashion", "Authentic", "Hoodie/ Sweater", "Polo", "Sport Wear", "Woman", "อื่นๆ"],
+            biz_expense: ["ต้นทุนสินค้า (สต็อก)", "ค่าขนส่ง/แพ็คเกจ", "ค่าโฆษณา/โปรโมท", "ค่าอุปกรณ์ร้าน", "เบ็ดเตล็ด (อื่นๆ)"],
+            per_income: ["เงินเดือน", "รายได้พิเศษ", "อื่นๆ"],
+            per_expense: ["ค่าอาหาร/เครื่องดื่ม", "ค่าเดินทาง/น้ำมัน", "ของใช้ส่วนตัว", "ช้อปปิ้ง/บันเทิง", "บิล/ค่าโทรศัพท์", "อื่นๆ"]
         };
 
         document.getElementById('date').valueAsDate = new Date();
-        populateCategories('income');
+
+        // สลับโหมดแอป ร้านค้า <-> ส่วนตัว
+        function switchAppMode(mode) {
+            currentAppMode = mode;
+            const bg = document.getElementById('app-mode-bg');
+            const btnBiz = document.getElementById('btn-mode-biz');
+            const btnPer = document.getElementById('btn-mode-per');
+            const targetContainer = document.getElementById('target-container');
+            const dashBar = document.getElementById('dash-accent-bar');
+            
+            if (mode === 'business') {
+                bg.style.transform = 'translateX(0)';
+                bg.className = 'absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-[#00e676] rounded-full transition-all duration-300';
+                btnBiz.classList.replace('text-gray-400', 'text-black');
+                btnPer.classList.replace('text-white', 'text-gray-400');
+                targetContainer.style.display = 'block';
+                dashBar.className = 'absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-blue-500';
+            } else {
+                bg.style.transform = 'translateX(100%)';
+                bg.className = 'absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-accent-blue rounded-full transition-all duration-300';
+                btnPer.classList.replace('text-gray-400', 'text-white');
+                btnBiz.classList.replace('text-black', 'text-gray-400');
+                targetContainer.style.display = 'none'; // ซ่อนเป้าหมาย
+                dashBar.className = 'absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500';
+            }
+
+            // รีเฟรชหมวดหมู่ในหน้าบันทึก
+            const formType = document.getElementById('transaction-type').value;
+            setTransactionType(formType);
+            
+            // รีเฟรชข้อมูลตามโหมด
+            renderDashboard();
+            if(!document.getElementById('view-stats').classList.contains('hidden')) renderCharts();
+        }
 
         function quickAdd(type) {
             setTransactionType(type);
@@ -224,32 +263,52 @@
 
             populateCategories(type);
 
+            const activeColor = currentAppMode === 'business' ? 'bg-[#00e676]' : 'bg-[#3b82f6]';
+            const activeTextColor = currentAppMode === 'business' ? 'text-black' : 'text-white';
+
             if(type === 'income') {
                 bg.style.transform = 'translateX(0)';
-                bg.className = 'absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-accent-green rounded-lg transition-all duration-300';
-                btnInc.classList.replace('text-gray-400', 'text-black');
-                btnExp.classList.replace('text-white', 'text-gray-400');
+                bg.className = `absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] ${activeColor} rounded-lg transition-all duration-300`;
+                btnInc.className = `w-1/2 py-2 text-sm font-bold ${activeTextColor} z-10 rounded-lg cursor-pointer`;
+                btnExp.className = 'w-1/2 py-2 text-sm font-bold text-gray-400 z-10 rounded-lg cursor-pointer';
                 submitBtn.innerText = 'บันทึกรายรับ';
-                submitBtn.className = 'w-full bg-accent-green text-black font-black uppercase rounded-xl p-4 mt-4';
-                addIcon.className = 'absolute -top-6 bg-accent-green text-black rounded-full p-3 shadow-lg';
-                phoneContainer.style.display = 'block';
+                submitBtn.className = `w-full ${activeColor} ${activeTextColor} font-black uppercase rounded-xl p-4 mt-4`;
+                addIcon.className = `absolute -top-6 ${activeColor} ${activeTextColor} rounded-full p-3 shadow-lg`;
             } else {
                 bg.style.transform = 'translateX(100%)';
                 bg.className = 'absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-accent-red rounded-lg transition-all duration-300';
-                btnExp.classList.replace('text-gray-400', 'text-white');
-                btnInc.classList.replace('text-black', 'text-gray-400');
+                btnExp.className = 'w-1/2 py-2 text-sm font-bold text-white z-10 rounded-lg cursor-pointer';
+                btnInc.className = 'w-1/2 py-2 text-sm font-bold text-gray-400 z-10 rounded-lg cursor-pointer';
                 submitBtn.innerText = 'บันทึกรายจ่าย';
                 submitBtn.className = 'w-full bg-accent-red text-white font-black uppercase rounded-xl p-4 mt-4';
                 addIcon.className = 'absolute -top-6 bg-accent-red text-white rounded-full p-3 shadow-lg shadow-red-900/50';
+            }
+
+            // ซ่อนฟิลด์เบอร์โทร หากเป็นรายจ่าย หรือโหมดส่วนตัว
+            if(type === 'expense' || currentAppMode === 'personal') {
                 phoneContainer.style.display = 'none';
+            } else {
+                phoneContainer.style.display = 'block';
             }
         }
 
         function populateCategories(type) {
             const select = document.getElementById('category');
             select.innerHTML = '';
-            categories[type].forEach(cat => {
+            const catPrefix = currentAppMode === 'business' ? 'biz_' : 'per_';
+            categories[catPrefix + type].forEach(cat => {
                 select.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+        }
+
+        // คัดกรองข้อมูลตามโหมดที่เลือก
+        function getFilteredData() {
+            return globalSalesData.filter(row => {
+                if (currentAppMode === 'business') {
+                    return row.type === 'income' || row.type === 'expense';
+                } else {
+                    return row.type === 'personal_income' || row.type === 'personal_expense';
+                }
             });
         }
 
@@ -262,9 +321,16 @@
         function switchTab(tabId) {
             window.scrollTo({ top: 0, behavior: 'instant' }); 
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active', 'text-green-500'));
+            
+            // อัปเดตสีไอคอน
+            const activeColor = currentAppMode === 'business' ? 'text-green-500' : 'text-blue-500';
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('active', 'text-green-500', 'text-blue-500');
+                el.classList.add('text-gray-500');
+            });
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
-            document.getElementById(`tab-${tabId}`).classList.add('active', 'text-green-500');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.replace('text-gray-500', activeColor);
             
             if(tabId === 'dashboard' && (currentViewDate.getMonth() !== new Date().getMonth() || currentViewDate.getFullYear() !== new Date().getFullYear())) {
                 currentViewDate = new Date();
@@ -285,44 +351,48 @@
                 globalSalesData = await response.json();
                 status.classList.replace('bg-blue-500', 'bg-green-500'); 
                 status.classList.remove('animate-pulse');
-                renderDashboard();
-                if(!document.getElementById('view-stats').classList.contains('hidden')) renderCharts();
+                switchAppMode('business'); // เริ่มต้นที่ร้านค้า
             } catch (error) {
                 status.classList.replace('bg-blue-500', 'bg-red-500'); 
             }
         }
 
         function renderDashboard() {
+            const dataToRender = getFilteredData();
             const year = currentViewDate.getFullYear();
             const month = currentViewDate.getMonth();
-            let incTotal = 0;
-            let expTotal = 0;
+            let incTotal = 0, expTotal = 0;
             let dailyData = {};
 
-            globalSalesData.forEach(row => {
+            dataToRender.forEach(row => {
                 const rowDate = new Date(row.date);
                 if (rowDate.getFullYear() === year && rowDate.getMonth() === month) {
                     const val = Number(row.amount);
-                    const isIncome = row.type === 'income';
+                    const isIncome = row.type.includes('income');
                     const day = rowDate.getDate();
                     
                     if(!dailyData[day]) dailyData[day] = { inc: 0, exp: 0 };
                     
-                    if(isIncome) {
-                        incTotal += val;
-                        dailyData[day].inc += val;
-                    } else {
-                        expTotal += val;
-                        dailyData[day].exp += val;
-                    }
+                    if(isIncome) { incTotal += val; dailyData[day].inc += val; } 
+                    else { expTotal += val; dailyData[day].exp += val; }
                 }
             });
 
             const isRealCurrentMonth = (year === new Date().getFullYear() && month === new Date().getMonth());
             const monthNamesShort = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-            document.getElementById('dashboard-total-title').innerText = isRealCurrentMonth ? "กำไรสุทธิเดือนนี้" : `กำไรสุทธิเดือน ${monthNamesShort[month]} ${year + 543}`;
             
-            document.getElementById('total-income').innerText = formatTHB(incTotal);
+            const titleLabel = currentAppMode === 'business' ? "กำไรสุทธิร้านค้า" : "เงินเหลือส่วนตัว";
+            document.getElementById('dashboard-total-title').innerText = isRealCurrentMonth ? `${titleLabel}เดือนนี้` : `${titleLabel} (${monthNamesShort[month]} ${String(year + 543).slice(-2)})`;
+            
+            // อัปเดตสีตัวเลขตามโหมด
+            const incomeElem = document.getElementById('total-income');
+            if (currentAppMode === 'business') {
+                incomeElem.className = 'text-lg font-bold accent-green';
+            } else {
+                incomeElem.className = 'text-lg font-bold accent-blue';
+            }
+
+            incomeElem.innerText = formatTHB(incTotal);
             document.getElementById('total-expense').innerText = formatTHB(expTotal);
             document.getElementById('net-profit').innerText = formatTHB(incTotal - expTotal);
             
@@ -336,7 +406,6 @@
         function renderCalendarUI(year, month, dailyData) {
             const grid = document.getElementById('calendar-grid');
             grid.innerHTML = '';
-            
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
@@ -352,16 +421,18 @@
                 const hasData = data.inc > 0 || data.exp > 0;
                 const isToday = day === todayDate;
                 
-                // คำนวณสีของกรอบตามรายรับ/รายจ่าย
                 let cellStyle = 'border-gray-800';
                 let bgStyle = '';
-                
+                const activeBorderColor = currentAppMode === 'business' ? 'border-[#00e676]/40' : 'border-[#3b82f6]/40';
+                const activeBgColor = currentAppMode === 'business' ? 'bg-[#00e676]/5' : 'bg-[#3b82f6]/5';
+                const activeTextColor = currentAppMode === 'business' ? 'accent-green' : 'accent-blue';
+
                 if (hasData) {
                     if (data.inc >= data.exp) { 
-                        cellStyle = 'border-[#00e676]/40'; // วันที่กำไร (กรอบเขียว)
-                        bgStyle = 'bg-[#00e676]/5';
+                        cellStyle = activeBorderColor; 
+                        bgStyle = activeBgColor;
                     } else { 
-                        cellStyle = 'border-[#ef4444]/50'; // วันที่ขาดทุน (กรอบแดง)
+                        cellStyle = 'border-[#ef4444]/50'; 
                         bgStyle = 'bg-[#ef4444]/10';
                     }
                 }
@@ -369,7 +440,7 @@
                 const cellClass = `calendar-cell rounded-lg flex flex-col items-center justify-start py-1 border ${cellStyle} ${bgStyle}`;
                 
                 let amountsHtml = '';
-                if(data.inc > 0) amountsHtml += `<span class="accent-green text-[9px] font-bold mt-1 leading-none w-full text-center truncate">+฿${data.inc.toLocaleString()}</span>`;
+                if(data.inc > 0) amountsHtml += `<span class="${activeTextColor} text-[9px] font-bold mt-1 leading-none w-full text-center truncate">+฿${data.inc.toLocaleString()}</span>`;
                 if(data.exp > 0) amountsHtml += `<span class="accent-red text-[9px] font-bold mt-[2px] leading-none w-full text-center truncate">-฿${data.exp.toLocaleString()}</span>`;
 
                 grid.innerHTML += `
@@ -382,6 +453,7 @@
         }
 
         function renderCharts() {
+            const dataToRender = getFilteredData();
             const year = currentViewDate.getFullYear();
             const month = currentViewDate.getMonth();
             const monthNamesShort = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
@@ -389,8 +461,8 @@
             let allTimeIncome = 0;
             const monthlyTotals = {};
             
-            globalSalesData.forEach(row => {
-                if (row.type !== 'expense') allTimeIncome += Number(row.amount);
+            dataToRender.forEach(row => {
+                if (row.type.includes('income')) allTimeIncome += Number(row.amount);
 
                 const d = new Date(row.date);
                 const rYear = d.getFullYear();
@@ -399,11 +471,19 @@
                 const label = `${monthNamesShort[rMonth]} ${String(rYear + 543).slice(-2)}`; 
                 
                 if(!monthlyTotals[key]) monthlyTotals[key] = { label: label, inc: 0, exp: 0 };
-                if (row.type === 'expense') monthlyTotals[key].exp += Number(row.amount);
+                if (row.type.includes('expense')) monthlyTotals[key].exp += Number(row.amount);
                 else monthlyTotals[key].inc += Number(row.amount);
             });
 
+            document.getElementById('stats-total-title').innerText = currentAppMode === 'business' ? 'ยอดรับร้านค้ารวม (All-time)' : 'รายรับส่วนตัวรวม (All-time)';
             document.getElementById('all-time-sales').innerText = formatTHB(allTimeIncome);
+            
+            const iconBg = document.getElementById('stats-icon-bg');
+            if (currentAppMode === 'business') {
+                iconBg.className = 'w-12 h-12 bg-green-900/30 text-green-500 rounded-full flex items-center justify-center';
+            } else {
+                iconBg.className = 'w-12 h-12 bg-blue-900/30 text-blue-500 rounded-full flex items-center justify-center';
+            }
 
             const sortedKeys = Object.keys(monthlyTotals).sort();
             const cashflowLabels = sortedKeys.map(k => monthlyTotals[k].label);
@@ -413,11 +493,11 @@
             const incCatTotals = {};
             const expCatTotals = {};
 
-            globalSalesData.forEach(row => {
+            dataToRender.forEach(row => {
                 const d = new Date(row.date);
                 if (d.getMonth() === month && d.getFullYear() === year) {
                     const cat = row.category || 'อื่นๆ';
-                    if (row.type === 'expense') expCatTotals[cat] = (expCatTotals[cat] || 0) + Number(row.amount);
+                    if (row.type.includes('expense')) expCatTotals[cat] = (expCatTotals[cat] || 0) + Number(row.amount);
                     else incCatTotals[cat] = (incCatTotals[cat] || 0) + Number(row.amount);
                 }
             });
@@ -425,17 +505,22 @@
             Chart.defaults.color = '#718096'; 
             Chart.defaults.font.family = 'Inter';
 
+            const activeChartColor = currentAppMode === 'business' ? '#00e676' : '#3b82f6';
+            const donutColors = currentAppMode === 'business' 
+                ? ['#00e676', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#a855f7'] 
+                : ['#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#8b5cf6', '#6366f1'];
+
             if(cashflowChartInst) cashflowChartInst.destroy();
             cashflowChartInst = new Chart(document.getElementById('cashflowChart'), {
                 type: 'bar',
-                data: { labels: cashflowLabels, datasets: [{ label: 'รายรับ', data: incData, backgroundColor: '#00e676', borderRadius: 2 }, { label: 'รายจ่าย', data: expData, backgroundColor: '#ef4444', borderRadius: 2 }] },
+                data: { labels: cashflowLabels, datasets: [{ label: 'รายรับ', data: incData, backgroundColor: activeChartColor, borderRadius: 2 }, { label: 'รายจ่าย', data: expData, backgroundColor: '#ef4444', borderRadius: 2 }] },
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#2d3748' } }, x: { grid: { display: false } } } }
             });
 
             if(incomeCatChartInst) incomeCatChartInst.destroy();
             incomeCatChartInst = new Chart(document.getElementById('incomeCategoryChart'), {
                 type: 'doughnut',
-                data: { labels: Object.keys(incCatTotals), datasets: [{ data: Object.values(incCatTotals), backgroundColor: ['#00e676', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#a855f7'], borderWidth: 0 }] },
+                data: { labels: Object.keys(incCatTotals), datasets: [{ data: Object.values(incCatTotals), backgroundColor: donutColors, borderWidth: 0 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } }, cutout: '70%' }
             });
 
@@ -450,12 +535,14 @@
         document.getElementById('sales-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
-            const type = document.getElementById('transaction-type').value;
+            const baseType = document.getElementById('transaction-type').value;
+            const finalType = currentAppMode === 'business' ? baseType : `personal_${baseType}`;
+            
             btn.innerText = 'กำลังบันทึก...';
             btn.disabled = true;
 
             const payload = {
-                type: type,
+                type: finalType,
                 date: document.getElementById('date').value,
                 amount: document.getElementById('amount').value,
                 category: document.getElementById('category').value,
@@ -469,17 +556,17 @@
                 document.getElementById('phone').value = '';
                 document.getElementById('note').value = '';
                 btn.innerText = 'บันทึกสำเร็จ!';
-                btn.classList.add('bg-blue-500');
+                btn.classList.add('opacity-80');
                 
                 setTimeout(() => {
-                    setTransactionType(type);
+                    setTransactionType(baseType);
                     btn.disabled = false;
                     loadData(); 
                     switchTab('dashboard'); 
                 }, 1500);
             } catch (error) {
                 alert('ส่งข้อมูลไม่สำเร็จ กรุณาลองใหม่');
-                setTransactionType(type);
+                setTransactionType(baseType);
                 btn.disabled = false;
             }
         });
