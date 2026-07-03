@@ -53,6 +53,7 @@
                     <div>
                         <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">รายรับ</p>
                         <h3 class="text-lg font-bold accent-green" id="total-income">฿0</h3>
+                        <p class="text-[9px] mt-1 text-gray-400" id="mom-compare">เทียบเดือนที่แล้ว: ...</p>
                     </div>
                     <div>
                         <p class="text-[10px] text-gray-500 font-bold uppercase mb-1">รายจ่าย</p>
@@ -99,6 +100,17 @@
                 </div>
                 <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
             </div>
+        </div>
+
+        <div id="view-history" class="view-section hidden">
+            <div class="flex justify-between items-center mb-4 px-1">
+                <h3 class="text-lg font-bold">ประวัติรายการ</h3>
+                <div class="flex items-center gap-2">
+                    <span id="history-month-title" class="text-[10px] bg-gray-800 text-gray-400 px-3 py-1.5 rounded-full uppercase font-bold tracking-widest border border-gray-700">...</span>
+                </div>
+            </div>
+            <div id="history-list" class="space-y-3 pb-6">
+                </div>
         </div>
 
         <div id="view-add" class="view-section hidden">
@@ -172,20 +184,28 @@
     </div>
 
     <div class="fixed bottom-0 left-0 w-full bg-[#1a1c23] border-t border-gray-800 pb-safe z-50">
-        <div class="max-w-lg mx-auto flex justify-between items-center p-2 px-6">
-            <button onclick="switchTab('dashboard')" class="nav-item active flex flex-col items-center p-2 text-gray-500" id="tab-dashboard">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                <span class="text-[10px] mt-1 font-bold">หน้าหลัก</span>
+        <div class="max-w-lg mx-auto flex justify-between items-center p-2 px-4">
+            
+            <button onclick="switchTab('dashboard')" class="nav-item active flex flex-col items-center p-2 text-gray-500 w-1/4" id="tab-dashboard">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <span class="text-[9px] mt-1.5 font-bold uppercase tracking-wide">หน้าหลัก</span>
             </button>
-            <button onclick="switchTab('add')" class="nav-item flex flex-col items-center p-2 text-gray-500 relative" id="tab-add">
-                <div class="absolute -top-6 bg-accent-green text-black rounded-full p-3 shadow-lg" id="add-btn-icon">
+            
+            <button onclick="switchTab('history')" class="nav-item flex flex-col items-center p-2 text-gray-500 w-1/4" id="tab-history">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                <span class="text-[9px] mt-1.5 font-bold uppercase tracking-wide">ประวัติ</span>
+            </button>
+
+            <button onclick="switchTab('add')" class="nav-item flex flex-col items-center p-2 text-gray-500 relative w-1/4" id="tab-add">
+                <div class="absolute -top-7 bg-accent-green text-black rounded-full p-3 shadow-lg" id="add-btn-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </div>
-                <span class="text-[10px] mt-6 font-bold">บันทึก</span>
+                <span class="text-[9px] mt-7 font-bold uppercase tracking-wide">บันทึก</span>
             </button>
-            <button onclick="switchTab('stats')" class="nav-item flex flex-col items-center p-2 text-gray-500" id="tab-stats">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20v-4"></path></svg>
-                <span class="text-[10px] mt-1 font-bold">สถิติ</span>
+            
+            <button onclick="switchTab('stats')" class="nav-item flex flex-col items-center p-2 text-gray-500 w-1/4" id="tab-stats">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20v-4"></path></svg>
+                <span class="text-[9px] mt-1.5 font-bold uppercase tracking-wide">สถิติ</span>
             </button>
         </div>
     </div>
@@ -201,7 +221,6 @@
         let targetAmount = localStorage.getItem('monthlyTarget') ? Number(localStorage.getItem('monthlyTarget')) : 30000;
         let currentViewDate = new Date(); 
         
-        // ตัวแปรโหมดหลัก (business หรือ personal)
         let currentAppMode = 'business'; 
 
         const categories = {
@@ -213,7 +232,6 @@
 
         document.getElementById('date').valueAsDate = new Date();
 
-        // สลับโหมดแอป ร้านค้า <-> ส่วนตัว
         function switchAppMode(mode) {
             currentAppMode = mode;
             const bg = document.getElementById('app-mode-bg');
@@ -234,17 +252,16 @@
                 bg.className = 'absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-accent-blue rounded-full transition-all duration-300';
                 btnPer.classList.replace('text-gray-400', 'text-white');
                 btnBiz.classList.replace('text-black', 'text-gray-400');
-                targetContainer.style.display = 'none'; // ซ่อนเป้าหมาย
+                targetContainer.style.display = 'none';
                 dashBar.className = 'absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500';
             }
 
-            // รีเฟรชหมวดหมู่ในหน้าบันทึก
             const formType = document.getElementById('transaction-type').value;
             setTransactionType(formType);
             
-            // รีเฟรชข้อมูลตามโหมด
             renderDashboard();
             if(!document.getElementById('view-stats').classList.contains('hidden')) renderCharts();
+            if(!document.getElementById('view-history').classList.contains('hidden')) renderHistory();
         }
 
         function quickAdd(type) {
@@ -273,7 +290,7 @@
                 btnExp.className = 'w-1/2 py-2 text-sm font-bold text-gray-400 z-10 rounded-lg cursor-pointer';
                 submitBtn.innerText = 'บันทึกรายรับ';
                 submitBtn.className = `w-full ${activeColor} ${activeTextColor} font-black uppercase rounded-xl p-4 mt-4`;
-                addIcon.className = `absolute -top-6 ${activeColor} ${activeTextColor} rounded-full p-3 shadow-lg`;
+                addIcon.className = `absolute -top-7 ${activeColor} ${activeTextColor} rounded-full p-3 shadow-lg`;
             } else {
                 bg.style.transform = 'translateX(100%)';
                 bg.className = 'absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-accent-red rounded-lg transition-all duration-300';
@@ -281,10 +298,9 @@
                 btnInc.className = 'w-1/2 py-2 text-sm font-bold text-gray-400 z-10 rounded-lg cursor-pointer';
                 submitBtn.innerText = 'บันทึกรายจ่าย';
                 submitBtn.className = 'w-full bg-accent-red text-white font-black uppercase rounded-xl p-4 mt-4';
-                addIcon.className = 'absolute -top-6 bg-accent-red text-white rounded-full p-3 shadow-lg shadow-red-900/50';
+                addIcon.className = 'absolute -top-7 bg-accent-red text-white rounded-full p-3 shadow-lg shadow-red-900/50';
             }
 
-            // ซ่อนฟิลด์เบอร์โทร หากเป็นรายจ่าย หรือโหมดส่วนตัว
             if(type === 'expense' || currentAppMode === 'personal') {
                 phoneContainer.style.display = 'none';
             } else {
@@ -301,7 +317,6 @@
             });
         }
 
-        // คัดกรองข้อมูลตามโหมดที่เลือก
         function getFilteredData() {
             return globalSalesData.filter(row => {
                 if (currentAppMode === 'business') {
@@ -316,18 +331,19 @@
             currentViewDate.setMonth(currentViewDate.getMonth() + offset);
             renderDashboard();
             if(!document.getElementById('view-stats').classList.contains('hidden')) renderCharts();
+            if(!document.getElementById('view-history').classList.contains('hidden')) renderHistory();
         }
 
         function switchTab(tabId) {
             window.scrollTo({ top: 0, behavior: 'instant' }); 
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
             
-            // อัปเดตสีไอคอน
             const activeColor = currentAppMode === 'business' ? 'text-green-500' : 'text-blue-500';
             document.querySelectorAll('.nav-item').forEach(el => {
                 el.classList.remove('active', 'text-green-500', 'text-blue-500');
                 el.classList.add('text-gray-500');
             });
+            
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
             document.getElementById(`tab-${tabId}`).classList.add('active');
             document.getElementById(`tab-${tabId}`).classList.replace('text-gray-500', activeColor);
@@ -337,6 +353,7 @@
                 renderDashboard();
             }
             if(tabId === 'stats' && globalSalesData.length > 0) renderCharts();
+            if(tabId === 'history' && globalSalesData.length > 0) renderHistory();
         }
 
         function formatTHB(amount) {
@@ -351,7 +368,7 @@
                 globalSalesData = await response.json();
                 status.classList.replace('bg-blue-500', 'bg-green-500'); 
                 status.classList.remove('animate-pulse');
-                switchAppMode('business'); // เริ่มต้นที่ร้านค้า
+                switchAppMode('business');
             } catch (error) {
                 status.classList.replace('bg-blue-500', 'bg-red-500'); 
             }
@@ -361,30 +378,42 @@
             const dataToRender = getFilteredData();
             const year = currentViewDate.getFullYear();
             const month = currentViewDate.getMonth();
-            let incTotal = 0, expTotal = 0;
+            
+            // หาเดือนที่แล้ว สำหรับทำ MoM
+            let prevMonth = month - 1;
+            let prevYear = year;
+            if (prevMonth < 0) { prevMonth = 11; prevYear--; }
+            const isRealCurrentMonth = (year === new Date().getFullYear() && month === new Date().getMonth());
+            const compareLimitDay = isRealCurrentMonth ? new Date().getDate() : 31;
+
+            let incTotal = 0, expTotal = 0, prevMonthIncTotal = 0;
             let dailyData = {};
 
             dataToRender.forEach(row => {
                 const rowDate = new Date(row.date);
+                const val = Number(row.amount);
+                const isIncome = row.type.includes('income');
+                
+                // คำนวณเดือนนี้
                 if (rowDate.getFullYear() === year && rowDate.getMonth() === month) {
-                    const val = Number(row.amount);
-                    const isIncome = row.type.includes('income');
                     const day = rowDate.getDate();
-                    
                     if(!dailyData[day]) dailyData[day] = { inc: 0, exp: 0 };
                     
                     if(isIncome) { incTotal += val; dailyData[day].inc += val; } 
                     else { expTotal += val; dailyData[day].exp += val; }
                 }
+                
+                // คำนวณรายรับเดือนที่แล้ว ณ วันที่เดียวกัน
+                if (rowDate.getFullYear() === prevYear && rowDate.getMonth() === prevMonth && rowDate.getDate() <= compareLimitDay) {
+                    if (isIncome) prevMonthIncTotal += val;
+                }
             });
 
-            const isRealCurrentMonth = (year === new Date().getFullYear() && month === new Date().getMonth());
             const monthNamesShort = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
             
             const titleLabel = currentAppMode === 'business' ? "กำไรสุทธิร้านค้า" : "เงินเหลือส่วนตัว";
             document.getElementById('dashboard-total-title').innerText = isRealCurrentMonth ? `${titleLabel}เดือนนี้` : `${titleLabel} (${monthNamesShort[month]} ${String(year + 543).slice(-2)})`;
             
-            // อัปเดตสีตัวเลขตามโหมด
             const incomeElem = document.getElementById('total-income');
             if (currentAppMode === 'business') {
                 incomeElem.className = 'text-lg font-bold accent-green';
@@ -396,11 +425,82 @@
             document.getElementById('total-expense').innerText = formatTHB(expTotal);
             document.getElementById('net-profit').innerText = formatTHB(incTotal - expTotal);
             
+            // อัปเดต % MoM (เทียบรายรับ)
+            const momElement = document.getElementById('mom-compare');
+            if (prevMonthIncTotal === 0) {
+                momElement.innerHTML = `เทียบรายรับเดือนที่แล้ว: <span class="text-gray-600">ไม่มีข้อมูล</span>`;
+            } else {
+                const diff = incTotal - prevMonthIncTotal;
+                const percentDiff = ((diff / prevMonthIncTotal) * 100).toFixed(1);
+                if (diff >= 0) {
+                    momElement.innerHTML = `เทียบรายรับเดือนที่แล้ว: <span class="text-green-500 font-bold">▲ +${percentDiff}%</span>`;
+                } else {
+                    momElement.innerHTML = `เทียบรายรับเดือนที่แล้ว: <span class="text-red-500 font-bold">▼ ${percentDiff}%</span>`;
+                }
+            }
+            
             document.getElementById('target-display').innerText = formatTHB(targetAmount);
             const percent = Math.min((incTotal / targetAmount) * 100, 100);
             document.getElementById('progress-bar').style.width = `${percent}%`;
 
             renderCalendarUI(year, month, dailyData);
+        }
+
+        // --- ระบบประวัติรายการ (History) ---
+        function renderHistory() {
+            const listContainer = document.getElementById('history-list');
+            listContainer.innerHTML = '';
+            
+            const dataToRender = getFilteredData();
+            const year = currentViewDate.getFullYear();
+            const month = currentViewDate.getMonth();
+            const monthNamesShort = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+            
+            document.getElementById('history-month-title').innerText = `${monthNamesShort[month]} ${String(year + 543).slice(-2)}`;
+            
+            // ดึงเฉพาะข้อมูลเดือนที่กำลังดู และเรียงจากล่าสุดไปเก่าสุด
+            const currentMonthData = dataToRender.filter(row => {
+                const d = new Date(row.date);
+                return d.getFullYear() === year && d.getMonth() === month;
+            }).sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            if (currentMonthData.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center text-gray-500 py-10">
+                        <svg class="w-12 h-12 mx-auto mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <p class="text-xs">ไม่มีประวัติรายการในเดือนนี้</p>
+                    </div>`;
+                return;
+            }
+            
+            currentMonthData.forEach(row => {
+                const isIncome = row.type.includes('income');
+                const sign = isIncome ? '+' : '-';
+                
+                let colorClass, bgClass;
+                if (isIncome) {
+                    colorClass = currentAppMode === 'business' ? 'text-[#00e676]' : 'text-[#3b82f6]';
+                    bgClass = currentAppMode === 'business' ? 'border-[#00e676]/30 bg-[#00e676]/5' : 'border-[#3b82f6]/30 bg-[#3b82f6]/5';
+                } else {
+                    colorClass = 'text-[#ef4444]';
+                    bgClass = 'border-[#ef4444]/30 bg-[#ef4444]/5';
+                }
+
+                const dateObj = new Date(row.date);
+                const dateStr = `${dateObj.getDate()} ${monthNamesShort[dateObj.getMonth()]} ${dateObj.getFullYear() + 543}`;
+                
+                listContainer.innerHTML += `
+                    <div class="card-bg border ${bgClass} rounded-2xl p-4 flex justify-between items-center shadow-lg">
+                        <div class="flex-1 overflow-hidden pr-3">
+                            <p class="text-[10px] text-gray-400 font-bold tracking-wider mb-1">${dateStr} • ${row.category}</p>
+                            <p class="text-sm font-semibold text-gray-200 truncate">${row.note || 'ไม่มีรายละเอียด'}</p>
+                        </div>
+                        <div class="text-right whitespace-nowrap">
+                            <h3 class="text-lg font-black ${colorClass}">${sign}฿${Number(row.amount).toLocaleString()}</h3>
+                        </div>
+                    </div>
+                `;
+            });
         }
 
         function renderCalendarUI(year, month, dailyData) {
