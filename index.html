@@ -27,12 +27,14 @@
 </head>
 <body class="max-w-lg mx-auto">
 
+    <!-- Header & Mode Switcher -->
     <div class="p-4 pt-8 sticky top-0 bg-[#0b0c10] z-20 border-b border-gray-800">
         <div class="flex justify-between items-center mb-4 px-2">
             <h1 class="text-xl font-bold tracking-wider">HIGH<span class="text-gray-400">CLASS</span></h1>
             <div id="connection-status" class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
         </div>
         
+        <!-- สวิตช์เลือกระหว่าง ร้านค้า / ส่วนตัว -->
         <div class="flex bg-gray-900 rounded-full p-1 mx-auto max-w-[240px] border border-gray-700 relative shadow-lg">
             <div id="app-mode-bg" class="absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-accent-green rounded-full transition-all duration-300"></div>
             <button onclick="switchAppMode('business')" id="btn-mode-biz" class="w-1/2 text-xs font-bold py-1.5 text-black z-10 transition-colors cursor-pointer">💼 ร้านค้า</button>
@@ -40,8 +42,10 @@
         </div>
     </div>
 
+    <!-- ส่วนเนื้อหาหลัก -->
     <div class="p-4" id="main-content">
         
+        <!-- ==================== VIEW 1: DASHBOARD ==================== -->
         <div id="view-dashboard" class="view-section">
             
             <div class="card-bg rounded-2xl p-6 mb-4 shadow-2xl border border-gray-800 text-center relative overflow-hidden">
@@ -102,6 +106,7 @@
             </div>
         </div>
 
+        <!-- ==================== VIEW 2: HISTORY ==================== -->
         <div id="view-history" class="view-section hidden">
             <div class="flex justify-between items-center mb-4 px-1">
                 <h3 class="text-lg font-bold">ประวัติรายการ</h3>
@@ -110,9 +115,11 @@
                 </div>
             </div>
             <div id="history-list" class="space-y-3 pb-6">
-                </div>
+                <!-- ข้อมูลประวัติ -->
+            </div>
         </div>
 
+        <!-- ==================== VIEW 3: ADD RECORD ==================== -->
         <div id="view-add" class="view-section hidden">
             <div class="card-bg rounded-2xl p-6 shadow-lg border border-gray-800">
                 
@@ -154,6 +161,7 @@
             </div>
         </div>
 
+        <!-- ==================== VIEW 4: ANALYTICS ==================== -->
         <div id="view-stats" class="view-section hidden">
             <div class="card-bg rounded-2xl p-5 mb-5 border border-gray-800 flex justify-between items-center shadow-lg">
                 <div>
@@ -183,26 +191,23 @@
         </div>
     </div>
 
+    <!-- แถบเมนูด้านล่าง -->
     <div class="fixed bottom-0 left-0 w-full bg-[#1a1c23] border-t border-gray-800 pb-safe z-50">
         <div class="max-w-lg mx-auto flex justify-between items-center p-2 px-4">
-            
             <button onclick="switchTab('dashboard')" class="nav-item active flex flex-col items-center p-2 text-gray-500 w-1/4" id="tab-dashboard">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                 <span class="text-[9px] mt-1.5 font-bold uppercase tracking-wide">หน้าหลัก</span>
             </button>
-            
             <button onclick="switchTab('history')" class="nav-item flex flex-col items-center p-2 text-gray-500 w-1/4" id="tab-history">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
                 <span class="text-[9px] mt-1.5 font-bold uppercase tracking-wide">ประวัติ</span>
             </button>
-
             <button onclick="switchTab('add')" class="nav-item flex flex-col items-center p-2 text-gray-500 relative w-1/4" id="tab-add">
                 <div class="absolute -top-7 bg-accent-green text-black rounded-full p-3 shadow-lg" id="add-btn-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </div>
                 <span class="text-[9px] mt-7 font-bold uppercase tracking-wide">บันทึก</span>
             </button>
-            
             <button onclick="switchTab('stats')" class="nav-item flex flex-col items-center p-2 text-gray-500 w-1/4" id="tab-stats">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20v-4"></path></svg>
                 <span class="text-[9px] mt-1.5 font-bold uppercase tracking-wide">สถิติ</span>
@@ -365,7 +370,11 @@
             status.classList.replace('bg-yellow-500', 'bg-blue-500'); 
             try {
                 const response = await fetch(SCRIPT_URL);
-                globalSalesData = await response.json();
+                const rawData = await response.json();
+                
+                // แมพ originalIndex เข้าไปเพื่อเอาไว้เรียงลำดับให้ถูกเป๊ะๆ ในหน้าประวัติ
+                globalSalesData = rawData.map((row, index) => ({...row, originalIndex: index}));
+                
                 status.classList.replace('bg-blue-500', 'bg-green-500'); 
                 status.classList.remove('animate-pulse');
                 switchAppMode('business');
@@ -379,7 +388,6 @@
             const year = currentViewDate.getFullYear();
             const month = currentViewDate.getMonth();
             
-            // หาเดือนที่แล้ว สำหรับทำ MoM
             let prevMonth = month - 1;
             let prevYear = year;
             if (prevMonth < 0) { prevMonth = 11; prevYear--; }
@@ -394,7 +402,6 @@
                 const val = Number(row.amount);
                 const isIncome = row.type.includes('income');
                 
-                // คำนวณเดือนนี้
                 if (rowDate.getFullYear() === year && rowDate.getMonth() === month) {
                     const day = rowDate.getDate();
                     if(!dailyData[day]) dailyData[day] = { inc: 0, exp: 0 };
@@ -403,7 +410,6 @@
                     else { expTotal += val; dailyData[day].exp += val; }
                 }
                 
-                // คำนวณรายรับเดือนที่แล้ว ณ วันที่เดียวกัน
                 if (rowDate.getFullYear() === prevYear && rowDate.getMonth() === prevMonth && rowDate.getDate() <= compareLimitDay) {
                     if (isIncome) prevMonthIncTotal += val;
                 }
@@ -425,17 +431,16 @@
             document.getElementById('total-expense').innerText = formatTHB(expTotal);
             document.getElementById('net-profit').innerText = formatTHB(incTotal - expTotal);
             
-            // อัปเดต % MoM (เทียบรายรับ)
             const momElement = document.getElementById('mom-compare');
             if (prevMonthIncTotal === 0) {
-                momElement.innerHTML = `เทียบรายรับเดือนที่แล้ว: <span class="text-gray-600">ไม่มีข้อมูล</span>`;
+                momElement.innerHTML = `เทียบเดือนที่แล้ว: <span class="text-gray-600">ไม่มีข้อมูล</span>`;
             } else {
                 const diff = incTotal - prevMonthIncTotal;
                 const percentDiff = ((diff / prevMonthIncTotal) * 100).toFixed(1);
                 if (diff >= 0) {
-                    momElement.innerHTML = `เทียบรายรับเดือนที่แล้ว: <span class="text-green-500 font-bold">▲ +${percentDiff}%</span>`;
+                    momElement.innerHTML = `เทียบเดือนที่แล้ว: <span class="text-green-500 font-bold">▲ +${percentDiff}%</span>`;
                 } else {
-                    momElement.innerHTML = `เทียบรายรับเดือนที่แล้ว: <span class="text-red-500 font-bold">▼ ${percentDiff}%</span>`;
+                    momElement.innerHTML = `เทียบเดือนที่แล้ว: <span class="text-red-500 font-bold">▼ ${percentDiff}%</span>`;
                 }
             }
             
@@ -446,7 +451,7 @@
             renderCalendarUI(year, month, dailyData);
         }
 
-        // --- ระบบประวัติรายการ (History) ---
+        // --- ระบบเรียงลำดับประวัติที่แก้บั๊กแล้ว ---
         function renderHistory() {
             const listContainer = document.getElementById('history-list');
             listContainer.innerHTML = '';
@@ -458,17 +463,28 @@
             
             document.getElementById('history-month-title').innerText = `${monthNamesShort[month]} ${String(year + 543).slice(-2)}`;
             
-            // ดึงเฉพาะข้อมูลเดือนที่กำลังดู และเรียงจากล่าสุดไปเก่าสุด
+            // 1. กรองเอาเฉพาะเดือนที่เลือก
+            // 2. เรียงลำดับตามวันที่ (ใหม่ไปเก่า) และถ้าวันเดียวกัน ให้เรียงตาม Index ตอนที่ถูกเพิ่มลง Google Sheets (ใหม่ไปเก่า)
             const currentMonthData = dataToRender.filter(row => {
                 const d = new Date(row.date);
                 return d.getFullYear() === year && d.getMonth() === month;
-            }).sort((a, b) => new Date(b.date) - new Date(a.date));
+            }).sort((a, b) => {
+                const dateA = new Date(a.date).setHours(0,0,0,0);
+                const dateB = new Date(b.date).setHours(0,0,0,0);
+                
+                // ถ้าวันที่ต่างกัน ให้เรียงตามวันที่
+                if (dateB !== dateA) {
+                    return dateB - dateA;
+                }
+                // ถ้าวันที่ตรงกันเป๊ะ ให้เรียงตาม originalIndex (แถวหลังสุดใน Google Sheets คือค่าสูงสุด จะอยู่ข้างบน)
+                return b.originalIndex - a.originalIndex;
+            });
             
             if (currentMonthData.length === 0) {
                 listContainer.innerHTML = `
-                    <div class="text-center text-gray-500 py-10">
-                        <svg class="w-12 h-12 mx-auto mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <p class="text-xs">ไม่มีประวัติรายการในเดือนนี้</p>
+                    <div class="text-center text-gray-500 py-10 border border-gray-800 rounded-2xl mx-1 border-dashed">
+                        <svg class="w-10 h-10 mx-auto mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <p class="text-xs font-semibold uppercase tracking-widest">ยังไม่มีรายการ</p>
                     </div>`;
                 return;
             }
@@ -490,7 +506,7 @@
                 const dateStr = `${dateObj.getDate()} ${monthNamesShort[dateObj.getMonth()]} ${dateObj.getFullYear() + 543}`;
                 
                 listContainer.innerHTML += `
-                    <div class="card-bg border ${bgClass} rounded-2xl p-4 flex justify-between items-center shadow-lg">
+                    <div class="card-bg border ${bgClass} rounded-2xl p-4 flex justify-between items-center shadow-md mx-1">
                         <div class="flex-1 overflow-hidden pr-3">
                             <p class="text-[10px] text-gray-400 font-bold tracking-wider mb-1">${dateStr} • ${row.category}</p>
                             <p class="text-sm font-semibold text-gray-200 truncate">${row.note || 'ไม่มีรายละเอียด'}</p>
